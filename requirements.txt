@@ -1,0 +1,3 @@
+# 図の SVG を PNG にする（slides/tools/figs2png.sh）ときだけ使う
+cairosvg>=2.7
+pillow>=10

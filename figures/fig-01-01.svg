@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="720" height="380" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="380" class="bg"/><text x="130" y="26" text-anchor="middle" dominant-baseline="middle" class="t-s b">クライアント</text><rect x="40" y="40" width="180" height="50" rx="6" class="accT s"/><text x="130.0" y="65.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">ブラウザ</text><rect x="40" y="104" width="180" height="150" rx="6" class="none sm dash"/><rect x="54" y="114" width="152" height="28" rx="3" class="tint s"/><text x="130.0" y="128.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">トランスポート層</text><rect x="54" y="148" width="152" height="28" rx="3" class="tint s"/><text x="130.0" y="162.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">インターネット層</text><rect x="54" y="182" width="152" height="28" rx="3" class="tint s"/><text x="130.0" y="196.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">データリンク層</text><rect x="54" y="216" width="152" height="28" rx="3" class="tint s"/><text x="130.0" y="230.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">物理層</text><text x="590" y="26" text-anchor="middle" dominant-baseline="middle" class="t-s b">サーバ</text><rect x="500" y="40" width="180" height="50" rx="6" class="accT s"/><text x="590.0" y="65.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">Web サーバ</text><rect x="500" y="104" width="180" height="150" rx="6" class="none sm dash"/><rect x="514" y="114" width="152" height="28" rx="3" class="tint s"/><text x="590.0" y="128.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">トランスポート層</text><rect x="514" y="148" width="152" height="28" rx="3" class="tint s"/><text x="590.0" y="162.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">インターネット層</text><rect x="514" y="182" width="152" height="28" rx="3" class="tint s"/><text x="590.0" y="196.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">データリンク層</text><rect x="514" y="216" width="152" height="28" rx="3" class="tint s"/><text x="590.0" y="230.0" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">物理層</text><line x1="224" y1="58" x2="496" y2="58" class="sa" marker-end="url(#aa)"/><line x1="496" y1="74" x2="224" y2="74" class="sa" marker-end="url(#aa)"/><text x="360" y="46" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">HTTP のメッセージ</text><text x="360" y="92" text-anchor="middle" dominant-baseline="middle" class="t-xs">形式・順番・意味の約束 ＝ プロトコル</text><text x="360" y="150" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">この講義では</text><text x="360" y="168" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">中身を見ない</text><rect x="60" y="286" width="600" height="40" rx="20" class="tint2 s"/><text x="360" y="306" text-anchor="middle" dominant-baseline="middle" class="t-s b">土管：メッセージを相手まで届けてくれる</text><line x1="130" y1="254" x2="130" y2="284" class="sm" marker-end="url(#am)"/><line x1="590" y1="284" x2="590" y2="254" class="sm" marker-end="url(#am)"/><text x="360" y="356" text-anchor="middle" dominant-baseline="middle" class="t-xs b">アプリケーションは「何を送るか」だけを考え、「どう届けるか」は下の層に任せる</text></svg>

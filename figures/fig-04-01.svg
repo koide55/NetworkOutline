@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="400" class="bg"/><text x="175" y="22" text-anchor="middle" dominant-baseline="middle" class="t-s b">Cookie 型（状態をブラウザが持つ）</text><rect x="5" y="36" width="90" height="30" rx="4" class="tint s"/><text x="50.0" y="51.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">ブラウザ</text><line x1="50" y1="66" x2="50" y2="300" class="sm dash"/><rect x="255" y="36" width="90" height="30" rx="4" class="tint s"/><text x="300.0" y="51.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">Web アプリ</text><line x1="300" y1="66" x2="300" y2="300" class="sm dash"/><line x1="54" y1="96" x2="296" y2="96" class="s" marker-end="url(#a)"/><text x="175.0" y="88" text-anchor="middle" dominant-baseline="middle" class="t-xs">POST /login</text><line x1="296" y1="140" x2="54" y2="140" class="s" marker-end="url(#a)"/><text x="175.0" y="132" text-anchor="middle" dominant-baseline="middle" class="t-xs">Set-Cookie:</text><text x="175.0" y="154" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">署名付きの「alice」</text><line x1="54" y1="200" x2="296" y2="200" class="sa" marker-end="url(#aa)"/><text x="175.0" y="192" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">GET /mypage + Cookie</text><rect x="214" y="222" width="150" height="40" rx="4" class="accT s"/><text x="289" y="236" text-anchor="middle" dominant-baseline="middle" class="t-xs">署名を確かめて</text><text x="289" y="250" text-anchor="middle" dominant-baseline="middle" class="t-xs">「alice」と分かる</text><line x1="380" y1="20" x2="380" y2="310" class="sm dot"/><text x="545" y="22" text-anchor="middle" dominant-baseline="middle" class="t-s b">サーバセッション型（状態をサーバが持つ）</text><rect x="385" y="36" width="80" height="30" rx="4" class="tint s"/><text x="425.0" y="51.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">ブラウザ</text><line x1="425" y1="66" x2="425" y2="300" class="sm dash"/><rect x="515" y="36" width="80" height="30" rx="4" class="tint s"/><text x="555.0" y="51.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">Web アプリ</text><line x1="555" y1="66" x2="555" y2="300" class="sm dash"/><rect x="625" y="36" width="80" height="30" rx="4" class="tint s"/><text x="665.0" y="51.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">セッション表</text><line x1="665" y1="66" x2="665" y2="300" class="sm dash"/><line x1="429" y1="96" x2="551" y2="96" class="s" marker-end="url(#a)"/><text x="490.0" y="88" text-anchor="middle" dominant-baseline="middle" class="t-xs">POST /login</text><line x1="559" y1="120" x2="661" y2="120" class="s" marker-end="url(#a)"/><text x="610.0" y="112" text-anchor="middle" dominant-baseline="middle" class="t-xs">保存</text><text x="610" y="136" text-anchor="middle" dominant-baseline="middle" class="t-xs m lbl">7f3a → alice</text><line x1="551" y1="168" x2="429" y2="168" class="s" marker-end="url(#a)"/><text x="490.0" y="160" text-anchor="middle" dominant-baseline="middle" class="t-xs">Set-Cookie:</text><text x="490.0" y="182" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">sid=7f3a（番号だけ）</text><line x1="429" y1="220" x2="551" y2="220" class="sa" marker-end="url(#aa)"/><text x="490.0" y="212" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">GET + Cookie</text><line x1="559" y1="250" x2="661" y2="250" class="s" marker-end="url(#a)"/><text x="610.0" y="242" text-anchor="middle" dominant-baseline="middle" class="t-xs">7f3a は？</text><line x1="661" y1="276" x2="559" y2="276" class="s" marker-end="url(#a)"/><text x="610.0" y="268" text-anchor="middle" dominant-baseline="middle" class="t-xs">alice</text><text x="360" y="340" text-anchor="middle" dominant-baseline="middle" class="t-s b">どちらも、ブラウザが毎回 Cookie を見せることで「続き」を作っている</text><text x="360" y="366" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">サーバは覚えているのではなく、名札を見て思い出している</text></svg>

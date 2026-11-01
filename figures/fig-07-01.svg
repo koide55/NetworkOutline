@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450" width="720" height="450" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="450" class="bg"/><circle cx="300.0" cy="84.0" r="42" class="tint s"/><text x="300.0" y="84.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">観測</text><circle cx="412.0" cy="196.0" r="42" class="tint s"/><text x="412.0" y="196.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">計画</text><circle cx="300.0" cy="308.0" r="42" class="tint s"/><text x="300.0" y="308.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">行動</text><circle cx="188.0" cy="196.0" r="42" class="tint s"/><text x="188.0" y="196.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">結果を見る</text><path d="M347.3,94.5 A112,112 0 0 1 401.5,148.7" class="sa" marker-end="url(#aa)"/><path d="M401.5,243.3 A112,112 0 0 1 347.3,297.5" class="sa" marker-end="url(#aa)"/><path d="M252.7,297.5 A112,112 0 0 1 198.5,243.3" class="sa" marker-end="url(#aa)"/><path d="M198.5,148.7 A112,112 0 0 1 252.7,94.5" class="sa" marker-end="url(#aa)"/><circle cx="300" cy="196" r="38" class="accT s"/><text x="300" y="196" text-anchor="middle" dominant-baseline="middle" class="b">LLM</text><rect x="20" y="168" width="100" height="56" rx="4" class="tint2 s"/><text x="70.0" y="196.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">記憶</text><line x1="120" y1="188" x2="142" y2="188" class="sm" marker-end="url(#am)"/><line x1="142" y1="206" x2="120" y2="206" class="sm" marker-end="url(#am)"/><text x="610" y="152" text-anchor="middle" dominant-baseline="middle" class="t-s b">ツール</text><rect x="530" y="170" width="160" height="36" rx="4" class="tint2 s"/><text x="610.0" y="188.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">検索</text><line x1="330" y1="338" x2="526" y2="188" class="sm" marker-end="url(#am)"/><rect x="530" y="220" width="160" height="36" rx="4" class="tint2 s"/><text x="610.0" y="238.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">メール・カレンダー</text><line x1="330" y1="338" x2="526" y2="238" class="sm" marker-end="url(#am)"/><rect x="530" y="270" width="160" height="36" rx="4" class="tint2 s"/><text x="610.0" y="288.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">ファイル</text><line x1="330" y1="338" x2="526" y2="288" class="sm" marker-end="url(#am)"/><rect x="530" y="320" width="160" height="36" rx="4" class="tint2 s"/><text x="610.0" y="338.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">Web API</text><line x1="330" y1="338" x2="526" y2="338" class="sm" marker-end="url(#am)"/><rect x="130" y="372" width="340" height="38" rx="6" class="accT s"/><text x="300" y="391" text-anchor="middle" dominant-baseline="middle" class="t-s b acc">承認点：取り消せない操作の前に、人間が確認する</text><line x1="300" y1="350" x2="300" y2="372" class="sa dash"/><text x="360" y="434" text-anchor="middle" dominant-baseline="middle" class="t-xs b">LLM が「次に何をするか」を決め、周りのプログラムが道具を使って実行する</text></svg>

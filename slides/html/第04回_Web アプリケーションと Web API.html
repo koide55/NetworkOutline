@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第4回 Web アプリケーションと Web API｜通信工学通論</title>
+<style>
+
+:root{
+  --ink:#16191D; --paper:#FFFFFF; --tint:#EEF1F5; --tint2:#DDE4EC;
+  --acc:#0B5CAD; --accT:#D9E6F4; --mut:#5F6672; --dim:#9AA3B0;
+  --lightInk:#E8EBEF; --accLight:#6AB0F3; --code:#F5F7FA; --ghost:#2E3A4A;
+  --ja:"Yu Gothic Medium", "Yu Gothic", YuGothic, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; --mono:"SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0d10;font-family:var(--ja);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* 1280x720 の板を作り、画面の大きさに合わせて拡大縮小する。
+   どの画面でも同じ見た目になる —— スライドである以上これが要る。 */
+#deck{position:absolute;inset:0}
+.slide{
+  position:absolute;top:50%;left:50%;
+  width:1280px;height:720px;
+  transform:translate(-50%,-50%) scale(var(--s,1));
+  transform-origin:center center;
+  overflow:hidden;display:none;
+}
+.slide.on{display:block}
+.slide.light{background:var(--paper);color:var(--ink)}
+.slide.dark{background:var(--ink);color:var(--paper)}
+
+/* --- 明色スライドの骨格 --- */
+.slide.light header{position:absolute;top:33px;left:60px;right:60px}
+.kicker{font-size:16px;font-weight:700;color:var(--acc);letter-spacing:.02em}
+.slide.light h2{font-size:40px;font-weight:700;line-height:1.25;margin-top:6px}
+/* 内容の塊ごと、見出しと下端のあいだで縦に中央へ寄せる。
+   pptx では noteY を1枚ずつ手で詰めて注記を内容の直下に置いていた。
+   CSS は高さを知っているので、その手当てが要らない。 */
+.slide.light .body{position:absolute;top:130px;left:72px;right:72px;bottom:56px;
+  display:flex;flex-direction:column;gap:14px;justify-content:center}
+.pageno{position:absolute;right:60px;bottom:22px;font-size:13px;color:var(--mut)}
+
+.lead{font-size:20px;line-height:1.55;color:var(--ink)}
+.sub{font-size:17px;line-height:1.6;color:var(--mut)}
+.sub.center,.caption{text-align:center}
+.caption{font-size:20px;line-height:1.5;color:var(--ink)}
+.note{font-size:17px;line-height:1.5;font-weight:700;color:var(--acc);margin-top:8px}
+
+/* --- 意匠：マス目 --- */
+.motif{position:absolute;left:58px;bottom:56px;display:flex;gap:4px}
+.motif i{width:28px;height:19px;border:1px solid rgba(106,176,243,.45);border-radius:2px}
+.motif i.on{background:var(--accLight);border-color:var(--accLight)}
+.slide.title .motif{bottom:128px}
+
+/* --- 表紙 --- */
+.title-wrap{position:absolute;left:86px;top:188px;right:86px}
+.course{font-size:23px;color:var(--dim);letter-spacing:.12em}
+.slide.title h1{font-weight:700;line-height:1.2;margin-top:24px;color:var(--paper)}
+.tq{font-size:24px;line-height:1.5;color:var(--accLight);margin-top:28px}
+.affil{position:absolute;left:86px;bottom:22px;font-size:16px;color:var(--dim)}
+
+/* --- 今回の問い --- */
+.q-wrap{position:absolute;left:86px;right:86px;top:144px}
+.q-label{font-size:19px;font-weight:700;color:var(--accLight)}
+.q-big{font-size:48px;font-weight:700;line-height:1.35;margin-top:22px;color:var(--paper)}
+.q-sub{font-size:27px;color:var(--lightInk);margin-top:22px}
+.q-foot{font-size:19px;color:var(--dim);margin-top:40px}
+
+/* --- 節の区切り --- */
+.sec-wrap{position:absolute;left:86px;right:86px;top:230px}
+.sec-n{font-size:75px;font-weight:700;color:var(--ghost);line-height:1}
+.sec-name{font-size:51px;font-weight:700;color:var(--paper);margin-top:10px;line-height:1.2}
+.sec-tag{font-size:23px;color:var(--dim);margin-top:18px}
+
+/* --- 到達目標 --- */
+.goals{list-style:none;display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.goals li{display:flex;align-items:center;gap:18px}
+.goals .num{flex:none;width:48px;height:48px;border-radius:50%;
+  background:var(--accT);border:1.5px solid var(--acc);color:var(--acc);
+  font-size:19px;font-weight:700;display:grid;place-items:center}
+.g-h{font-size:21px;font-weight:700;color:var(--ink)}
+.g-b{font-size:19px;color:var(--mut);margin-left:12px}
+
+/* --- カード --- */
+.cards{display:grid;grid-template-columns:repeat(var(--per),1fr);gap:16px;align-content:start}
+.card{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:16px 18px}
+.card.acc{background:var(--accT);border-color:var(--acc)}
+.card-h{font-size:19px;font-weight:700;color:var(--ink)}
+.card.acc .card-h{color:var(--acc)}
+.card-b{font-size:16px;line-height:1.55;color:var(--mut);margin-top:8px}
+
+/* --- 囲み --- */
+.callout{border-radius:8px;padding:14px 20px}
+.callout.dashed{border:1.5px dashed var(--acc);background:var(--paper)}
+.callout.solid{border:1.5px solid var(--acc);background:var(--accT);
+  font-size:20px;font-weight:700;color:var(--acc);line-height:1.45}
+.callout.big{font-size:23px}
+.co-h{font-size:20px;font-weight:700;color:var(--acc)}
+.co-b{font-size:16px;line-height:1.5;color:var(--mut);margin-top:6px}
+
+/* --- 箇条書き --- */
+.bullets{list-style:none;display:flex;flex-direction:column;gap:10px}
+.bullets li{position:relative;padding-left:22px;font-size:21px;line-height:1.5;color:var(--ink)}
+.bullets li::before{content:"";position:absolute;left:4px;top:.62em;
+  width:7px;height:7px;border-radius:50%;background:var(--acc)}
+.bullets li.lv1{font-size:18px;color:var(--mut);padding-left:44px}
+.bullets li.lv1::before{left:26px;width:5px;height:5px;background:var(--mut)}
+.bullets.tight li{font-size:18px;gap:6px}
+
+/* --- コード --- */
+.code{background:var(--code);border:1px solid var(--tint2);border-radius:6px;
+  padding:16px 20px;font-family:var(--mono);font-size:17px;line-height:1.7;
+  color:var(--ink);white-space:pre;overflow:hidden}
+.code.small{font-size:15.5px}
+.code-split{display:grid;grid-template-columns:1fr .92fr;gap:22px;align-items:start}
+.side-h{font-size:19px;font-weight:700;color:var(--ink)}
+.side-b{font-size:17px;line-height:1.6;color:var(--mut);margin-top:8px}
+
+/* --- 表 --- */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.tbl th,.tbl td{border:1px solid var(--tint2);padding:7px 11px;font-size:17px;
+  line-height:1.4;text-align:left;vertical-align:middle;word-break:break-word}
+.tbl th{background:var(--tint);font-weight:700}
+.tbl.mono{font-family:var(--mono);font-size:16px}
+.tbl.mono th{font-family:var(--ja)}
+.tbl.center th,.tbl.center td{text-align:center}
+
+/* --- 左右2段 --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.col{display:flex;flex-direction:column;gap:11px}
+.col-h{font-size:20px;font-weight:700;color:var(--ink)}
+.col-b{font-size:17px;line-height:1.65;color:var(--mut)}
+.col-n{font-size:17px;font-weight:700;color:var(--acc)}
+
+/* --- 主張と対応 --- */
+.map{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.map li{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:8px}
+.m-a{font-size:20px;color:var(--ink);text-align:right}
+.m-arrow{height:3px;background:var(--acc);position:relative;border-radius:2px}
+.m-arrow::after{content:"";position:absolute;right:-1px;top:-5px;
+  border:7px solid transparent;border-left-color:var(--acc);border-right:0}
+.m-b{font-size:21px;font-weight:700;color:var(--acc)}
+
+/* --- 手順 --- */
+.steps{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:10px;align-items:stretch}
+.step{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:12px 12px 14px}
+.step.first{background:var(--accT);border-color:var(--acc)}
+.st-n{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--acc)}
+.st-h{font-size:17px;font-weight:700;color:var(--ink);margin-top:6px;line-height:1.3}
+.st-b{font-size:15px;color:var(--mut);margin-top:6px;line-height:1.45}
+
+/* --- 図 --- */
+/* 図は枠いっぱいまで伸ばす。SVG なので拡大しても粗くならない。
+   pptx 版も箱に合わせて拡大していたので、そこは同じ振る舞いにしてある。 */
+.figwrap{flex:1;min-height:0;display:flex}
+.fig{width:100%;height:100%;object-fit:contain}
+.fig-missing{color:#b00;font-size:20px;text-align:center;padding:40px}
+
+/* --- 演習 --- */
+.ex{list-style:none;display:flex;flex-direction:column;gap:16px}
+.ex li{display:flex;gap:18px;align-items:flex-start}
+.ex-n{flex:none;width:74px;padding:5px 0;text-align:center;border-radius:7px;
+  background:var(--accT);border:1px solid var(--acc);color:var(--acc);
+  font-family:var(--mono);font-size:17px;font-weight:700}
+.ex-t{font-size:19px;line-height:1.55;color:var(--ink);padding-top:3px}
+
+/* --- まとめ --- */
+.sum-wrap{position:absolute;left:86px;right:86px;top:74px;bottom:74px;
+  display:flex;flex-direction:column}
+.sum-t{font-size:40px;font-weight:700;color:var(--paper)}
+.sum{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:26px}
+.sum li{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:baseline}
+.s-h{font-size:20px;font-weight:700;color:var(--accLight)}
+.s-b{font-size:18px;line-height:1.5;color:var(--lightInk)}
+.next{font-size:17px;color:var(--dim);margin-top:auto;line-height:1.5}
+.next b{color:var(--accLight)}
+
+/* --- 画面まわり --- */
+#hud{position:fixed;left:16px;bottom:12px;font-size:13px;color:#7c8694;
+  font-family:var(--mono);z-index:20;user-select:none}
+#help{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);
+  background:#fff;color:var(--ink);border-radius:12px;padding:26px 30px;z-index:30;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);font-size:15px;max-width:520px}
+#help h3{font-size:19px;margin-bottom:14px}
+#help table{border-collapse:collapse;width:100%}
+#help td{padding:5px 10px 5px 0;vertical-align:top}
+#help td:first-child{font-family:var(--mono);color:var(--acc);white-space:nowrap}
+#help p{margin-top:14px;color:var(--mut);font-size:13.5px;line-height:1.6}
+
+/* --- 一覧表示 --- */
+body.overview{overflow:auto}
+body.overview #deck{position:static;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;padding:22px}
+body.overview .slide{position:relative;top:auto;left:auto;display:block;
+  transform:scale(var(--os));transform-origin:top left;
+  width:1280px;height:720px;cursor:pointer;
+  outline:2px solid #2a3340;border-radius:2px}
+body.overview .slide.on{outline:3px solid var(--accLight)}
+body.overview .sl-wrap{overflow:hidden}
+
+/* --- 組版チェック：実際に溢れた箇所だけを赤で示す --- */
+body.check .slide.overflow{outline:4px solid #e0453a;outline-offset:-4px}
+body.check .slide.overflow::after{content:"組版あふれ";position:absolute;
+  right:0;top:0;background:#e0453a;color:#fff;font-size:13px;padding:3px 9px;
+  font-weight:700;z-index:9}
+
+/* --- 印刷：1枚1ページ。PDF にすれば配布できる --- */
+@page{size:1280px 720px;margin:0}
+@media print{
+  html,body{overflow:visible;background:#fff;height:auto}
+  #hud,#help{display:none!important}
+  #deck{position:static}
+  .slide{position:relative!important;display:block!important;top:auto;left:auto;
+    transform:none!important;page-break-after:always;break-after:page;
+    width:1280px;height:720px}
+  .slide:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="deck">
+<section class="slide dark title">
+      <div class="title-wrap">
+        <div class="course">通信工学通論</div>
+        <h1 style="font-size:45px">第4回　Web アプリケーションと Web API</h1>
+        <p class="tq">状態を持たない HTTP の上で、ログインや掲示板はどう作られているのか。</p>
+      </div>
+      <div class="affil">九州大学</div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide dark ">
+      <div class="q-wrap">
+        <div class="q-label">今回の問い</div>
+        <p class="q-big">状態を持たない HTTP の上で、<br>ログインはどう作られているのか。</p>
+        <p class="q-sub">そして、プログラムどうしは Web をどう使ってやりとりしているのか。</p>
+        <p class="q-foot">この90分で、この問いに答えを出す。</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第4回</div>
+        <h2>到達目標</h2>
+      </header><div class="body"><ol class="goals">
+      <li><span class="num">1</span>
+        <span class="g-h">Web アプリの三層構成</span><span class="g-b">を説明できる</span></li>
+      <li><span class="num">2</span>
+        <span class="g-h">Cookie とセッション</span><span class="g-b">でログイン状態を保つ2つの方式を説明できる</span></li>
+      <li><span class="num">3</span>
+        <span class="g-h">REST と JSON</span><span class="g-b">で作られた Web API を読み、呼び出せる</span></li>
+      <li><span class="num">4</span>
+        <span class="g-h">WebSocket と SSE</span><span class="g-b">が何のためにあるかを説明できる</span></li>
+      <li><span class="num">5</span>
+        <span class="g-h">OAuth 2.0 と OpenID Connect</span><span class="g-b">が何を任せているかを説明できる</span></li></ol></div>
+        <div class="pageno">3</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">4.1</div>
+        <h1 class="sec-name">Web アプリケーション</h1>
+        <p class="sec-tag">ページを見せるだけでなく、仕事をする</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.1　Web アプリ</div>
+        <h2>Web 2.0 から、今の Web アプリへ</h2>
+      </header><div class="body">
+      <div class="split"><div class="col"><div class="col-h">Web 2.0（2005年頃）</div><ul class="bullets tight"><li>利用者が書き込み、共有する（ブログ、SNS、Wiki）</li><li>ページ全体を読み直さずに一部を更新する（Ajax）</li><li>Web がアプリケーションの土台になる</li></ul></div><div class="col"><div class="col-h">今の Web アプリ</div><ul class="bullets tight"><li>1枚のページの中で、JavaScript が画面を作り替える（SPA）</li><li>データは Web API から JSON で受け取る</li><li>スマートフォンのアプリも同じ API を使う</li></ul></div></div>
+      <p class="note">Google マップ（2005年）は、ページを読み直さずに地図を動かせることで驚かれた。今はそれが当たり前になった。</p></div>
+        <div class="pageno">5</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.1　Web アプリ</div>
+        <h2>Web アプリケーションの三層構成</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 co-10-04" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgMzgwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjM4MCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzAwIiBoZWlnaHQ9IjM4MCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iNDAiIHk9IjE0MCIgd2lkdGg9IjExMCIgaGVpZ2h0PSI2MCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9Ijk1LjAiIHk9IjE3MC4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIj7jg5bjg6njgqbjgrY8L3RleHQ+PHRleHQgeD0iOTUiIHk9IjIxNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jg5fjg6zjgrzjg7Pjg4bjg7zjgrfjg6fjg7PlsaQ8L3RleHQ+PHJlY3QgeD0iNDAiIHk9IjU2IiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjQ0IiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9Ijk1LjAiIHk9Ijc4LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMiPkNETjwvdGV4dD48cGF0aCBkPSJNOTUsMTM4IEw5NSwxMDIiIGNsYXNzPSJzbSBkYXNoIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjx0ZXh0IHg9IjE2MCIgeT0iNzgiIHRleHQtYW5jaG9yPSJzdGFydCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7ov5HjgY/jgYvjgonov5TjgZvjgovjgoLjga7jga88L3RleHQ+PHRleHQgeD0iMTYwIiB5PSI5NCIgdGV4dC1hbmNob3I9InN0YXJ0IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuOBk+OBk+OBp+i/lOOBmTwvdGV4dD48cmVjdCB4PSIyMTAiIHk9IjE0MCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSI2MCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjI2MC4wIiB5PSIxNjIuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODreODvOODiTwvdGV4dD48dGV4dCB4PSIyNjAuMCIgeT0iMTc4LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg5Djg6njg7PjgrU8L3RleHQ+PGxpbmUgeDE9IjE1MCIgeTE9IjE3MCIgeDI9IjIwNiIgeTI9IjE3MCIgY2xhc3M9InNhIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+PHRleHQgeD0iMTc4LjAiIHk9IjE2My4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPkhUVFA8L3RleHQ+PHJlY3QgeD0iMzcwIiB5PSI5NiIgd2lkdGg9IjEzMCIgaGVpZ2h0PSI0NiIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjQzNS4wIiB5PSIxMTEuNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCouODl+ODquOCseODvOOCt+ODp+ODszwvdGV4dD48dGV4dCB4PSI0MzUuMCIgeT0iMTI2LjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jgrXjg7zjg5A8L3RleHQ+PGxpbmUgeDE9IjMxMCIgeTE9IjE3MCIgeDI9IjM2NiIgeTI9IjExOSIgY2xhc3M9InNtIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjxsaW5lIHgxPSI1MDAiIHkxPSIxMTkiIHgyPSI1NTYiIHkyPSIxNzgiIGNsYXNzPSJzbSIgbWFya2VyLWVuZD0idXJsKCNhbSkiLz48cmVjdCB4PSIzNzAiIHk9IjE1OCIgd2lkdGg9IjEzMCIgaGVpZ2h0PSI0NiIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjQzNS4wIiB5PSIxNzMuNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCouODl+ODquOCseODvOOCt+ODp+ODszwvdGV4dD48dGV4dCB4PSI0MzUuMCIgeT0iMTg4LjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jgrXjg7zjg5A8L3RleHQ+PGxpbmUgeDE9IjMxMCIgeTE9IjE3MCIgeDI9IjM2NiIgeTI9IjE4MSIgY2xhc3M9InNtIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjxsaW5lIHgxPSI1MDAiIHkxPSIxODEiIHgyPSI1NTYiIHkyPSIxNzgiIGNsYXNzPSJzbSIgbWFya2VyLWVuZD0idXJsKCNhbSkiLz48cmVjdCB4PSIzNzAiIHk9IjIyMCIgd2lkdGg9IjEzMCIgaGVpZ2h0PSI0NiIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjQzNS4wIiB5PSIyMzUuNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCouODl+ODquOCseODvOOCt+ODp+ODszwvdGV4dD48dGV4dCB4PSI0MzUuMCIgeT0iMjUwLjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jgrXjg7zjg5A8L3RleHQ+PGxpbmUgeDE9IjMxMCIgeTE9IjE3MCIgeDI9IjM2NiIgeTI9IjI0MyIgY2xhc3M9InNtIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjxsaW5lIHgxPSI1MDAiIHkxPSIyNDMiIHgyPSI1NTYiIHkyPSIxNzgiIGNsYXNzPSJzbSIgbWFya2VyLWVuZD0idXJsKCNhbSkiLz48dGV4dCB4PSI0MzUiIHk9IjMwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jgqLjg5fjg6rjgrHjg7zjgrfjg6fjg7PlsaQ8L3RleHQ+PHJlY3QgeD0iNTYwIiB5PSIxNTAiIHdpZHRoPSIxMTAiIGhlaWdodD0iNTYiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSI2MTUuMCIgeT0iMTc4LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMiPuODh+ODvOOCv+ODmeODvOOCuTwvdGV4dD48cmVjdCB4PSI1NjAiIHk9IjIyNCIgd2lkdGg9IjExMCIgaGVpZ2h0PSI0MCIgY2xhc3M9ImJnIHMgZGFzaCIvPjx0ZXh0IHg9IjYxNS4wIiB5PSIyNDQuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODrOODl+ODquOCqzwvdGV4dD48bGluZSB4MT0iNjE1IiB5MT0iMjA2IiB4Mj0iNjE1IiB5Mj0iMjIyIiBjbGFzcz0ic20gZGFzaCIvPjx0ZXh0IHg9IjYxNSIgeT0iMjg4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuODh+ODvOOCv+WxpDwvdGV4dD48dGV4dCB4PSIzNTAiIHk9IjMzNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj5IVFRQIOOBjOOCueODhuODvOODiOODrOOCueOBoOOBi+OCieOAgeOCouODl+ODquOCseODvOOCt+ODp+ODs+OCteODvOODkOOBr+S9leWPsOOBq+Wil+OChOOBl+OBpuOCguOCiOOBhDwvdGV4dD48dGV4dCB4PSIzNTAiIHk9IjM2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jg63jgrDjgqTjg7PnirbmhYvjgarjganjga8gQ29va2llIOOChOODiOODvOOCr+ODs+OBqOOBl+OBpuOCr+ODqeOCpOOCouODs+ODiOWBtOOBq+aMgeOBn+OBm+OCizwvdGV4dD48L3N2Zz4K"></div>
+      <p class="caption">各層を独立に増やせる。アクセスが増えたらアプリサーバを、データが増えたら DB を強くする。</p>
+      
+      </div>
+        <div class="pageno">6</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">4.2</div>
+        <h1 class="sec-name">ログイン状態を保つ</h1>
+        <p class="sec-tag">Cookie が、ステートレスな HTTP に記憶を足す</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.2　Cookie</div>
+        <h2>Cookie とは</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">サーバが渡す</div>
+      <div class="card-b">応答の Set-Cookie ヘッダで、ブラウザに小さなデータを保存させる</div>
+    </div><div class="card">
+      <div class="card-h">ブラウザが返す</div>
+      <div class="card-b">同じサイトへのその後の要求に、Cookie ヘッダで自動的に付けて送る</div>
+    </div><div class="card">
+      <div class="card-h">使いみち</div>
+      <div class="card-b">ログイン状態、カートの中身、表示の設定</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">HTTP はステートレス。状態は Cookie として、要求に毎回乗せる</div>
+        <div class="co-b">サーバは「覚えている」のではなく、毎回「名札を見せてもらって」いる。</div>
+      </div></div>
+        <div class="pageno">8</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.2　セッション</div>
+        <h2>ログイン状態を保つ2つの方式</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 04-01" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgNDAwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwMCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwMCIgY2xhc3M9ImJnIi8+PHRleHQgeD0iMTc1IiB5PSIyMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj5Db29raWUg5Z6L77yI54q25oWL44KS44OW44Op44Km44K244GM5oyB44Gk77yJPC90ZXh0PjxyZWN0IHg9IjUiIHk9IjM2IiB3aWR0aD0iOTAiIGhlaWdodD0iMzAiIHJ4PSI0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNTAuMCIgeT0iNTEuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+44OW44Op44Km44K2PC90ZXh0PjxsaW5lIHgxPSI1MCIgeTE9IjY2IiB4Mj0iNTAiIHkyPSIzMDAiIGNsYXNzPSJzbSBkYXNoIi8+PHJlY3QgeD0iMjU1IiB5PSIzNiIgd2lkdGg9IjkwIiBoZWlnaHQ9IjMwIiByeD0iNCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjMwMC4wIiB5PSI1MS4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj5XZWIg44Ki44OX44OqPC90ZXh0PjxsaW5lIHgxPSIzMDAiIHkxPSI2NiIgeDI9IjMwMCIgeTI9IjMwMCIgY2xhc3M9InNtIGRhc2giLz48bGluZSB4MT0iNTQiIHkxPSI5NiIgeDI9IjI5NiIgeTI9Ijk2IiBjbGFzcz0icyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPjx0ZXh0IHg9IjE3NS4wIiB5PSI4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPlBPU1QgL2xvZ2luPC90ZXh0PjxsaW5lIHgxPSIyOTYiIHkxPSIxNDAiIHgyPSI1NCIgeTI9IjE0MCIgY2xhc3M9InMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz48dGV4dCB4PSIxNzUuMCIgeT0iMTMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+U2V0LUNvb2tpZTo8L3RleHQ+PHRleHQgeD0iMTc1LjAiIHk9IjE1NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7nvbLlkI3ku5jjgY3jga7jgIxhbGljZeOAjTwvdGV4dD48bGluZSB4MT0iNTQiIHkxPSIyMDAiIHgyPSIyOTYiIHkyPSIyMDAiIGNsYXNzPSJzYSIgbWFya2VyLWVuZD0idXJsKCNhYSkiLz48dGV4dCB4PSIxNzUuMCIgeT0iMTkyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBhY2MgYiI+R0VUIC9teXBhZ2UgKyBDb29raWU8L3RleHQ+PHJlY3QgeD0iMjE0IiB5PSIyMjIiIHdpZHRoPSIxNTAiIGhlaWdodD0iNDAiIHJ4PSI0IiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iMjg5IiB5PSIyMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7nvbLlkI3jgpLnorrjgYvjgoHjgaY8L3RleHQ+PHRleHQgeD0iMjg5IiB5PSIyNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jgIxhbGljZeOAjeOBqOWIhuOBi+OCizwvdGV4dD48bGluZSB4MT0iMzgwIiB5MT0iMjAiIHgyPSIzODAiIHkyPSIzMTAiIGNsYXNzPSJzbSBkb3QiLz48dGV4dCB4PSI1NDUiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIGIiPuOCteODvOODkOOCu+ODg+OCt+ODp+ODs+Wei++8iOeKtuaFi+OCkuOCteODvOODkOOBjOaMgeOBpO+8iTwvdGV4dD48cmVjdCB4PSIzODUiIHk9IjM2IiB3aWR0aD0iODAiIGhlaWdodD0iMzAiIHJ4PSI0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNDI1LjAiIHk9IjUxLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPuODluODqeOCpuOCtjwvdGV4dD48bGluZSB4MT0iNDI1IiB5MT0iNjYiIHgyPSI0MjUiIHkyPSIzMDAiIGNsYXNzPSJzbSBkYXNoIi8+PHJlY3QgeD0iNTE1IiB5PSIzNiIgd2lkdGg9IjgwIiBoZWlnaHQ9IjMwIiByeD0iNCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjU1NS4wIiB5PSI1MS4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj5XZWIg44Ki44OX44OqPC90ZXh0PjxsaW5lIHgxPSI1NTUiIHkxPSI2NiIgeDI9IjU1NSIgeTI9IjMwMCIgY2xhc3M9InNtIGRhc2giLz48cmVjdCB4PSI2MjUiIHk9IjM2IiB3aWR0aD0iODAiIGhlaWdodD0iMzAiIHJ4PSI0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNjY1LjAiIHk9IjUxLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPuOCu+ODg+OCt+ODp+ODs+ihqDwvdGV4dD48bGluZSB4MT0iNjY1IiB5MT0iNjYiIHgyPSI2NjUiIHkyPSIzMDAiIGNsYXNzPSJzbSBkYXNoIi8+PGxpbmUgeDE9IjQyOSIgeTE9Ijk2IiB4Mj0iNTUxIiB5Mj0iOTYiIGNsYXNzPSJzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+PHRleHQgeD0iNDkwLjAiIHk9Ijg4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+UE9TVCAvbG9naW48L3RleHQ+PGxpbmUgeDE9IjU1OSIgeTE9IjEyMCIgeDI9IjY2MSIgeTI9IjEyMCIgY2xhc3M9InMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz48dGV4dCB4PSI2MTAuMCIgeT0iMTEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+5L+d5a2YPC90ZXh0Pjx0ZXh0IHg9IjYxMCIgeT0iMTM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBtIGxibCI+N2YzYSDihpIgYWxpY2U8L3RleHQ+PGxpbmUgeDE9IjU1MSIgeTE9IjE2OCIgeDI9IjQyOSIgeTI9IjE2OCIgY2xhc3M9InMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz48dGV4dCB4PSI0OTAuMCIgeT0iMTYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+U2V0LUNvb2tpZTo8L3RleHQ+PHRleHQgeD0iNDkwLjAiIHk9IjE4MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj5zaWQ9N2YzYe+8iOeVquWPt+OBoOOBke+8iTwvdGV4dD48bGluZSB4MT0iNDI5IiB5MT0iMjIwIiB4Mj0iNTUxIiB5Mj0iMjIwIiBjbGFzcz0ic2EiIG1hcmtlci1lbmQ9InVybCgjYWEpIi8+PHRleHQgeD0iNDkwLjAiIHk9IjIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYWNjIGIiPkdFVCArIENvb2tpZTwvdGV4dD48bGluZSB4MT0iNTU5IiB5MT0iMjUwIiB4Mj0iNjYxIiB5Mj0iMjUwIiBjbGFzcz0icyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPjx0ZXh0IHg9IjYxMC4wIiB5PSIyNDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj43ZjNhIOOBr++8nzwvdGV4dD48bGluZSB4MT0iNjYxIiB5MT0iMjc2IiB4Mj0iNTU5IiB5Mj0iMjc2IiBjbGFzcz0icyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPjx0ZXh0IHg9IjYxMC4wIiB5PSIyNjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5hbGljZTwvdGV4dD48dGV4dCB4PSIzNjAiIHk9IjM0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jganjgaHjgonjgoLjgIHjg5bjg6njgqbjgrbjgYzmr47lm54gQ29va2llIOOCkuimi+OBm+OCi+OBk+OBqOOBp+OAjOe2muOBjeOAjeOCkuS9nOOBo+OBpuOBhOOCizwvdGV4dD48dGV4dCB4PSIzNjAiIHk9IjM2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jgrXjg7zjg5Djga/opprjgYjjgabjgYTjgovjga7jgafjga/jgarjgY/jgIHlkI3mnK3jgpLopovjgabmgJ3jgYTlh7rjgZfjgabjgYTjgos8L3RleHQ+PC9zdmc+Cg=="></div>
+      
+      
+      </div>
+        <div class="pageno">9</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.2　セッション</div>
+        <h2>2つの方式の比較</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:27.12%"><col style="width:36.44%"><col style="width:36.44%"></colgroup><thead><tr><th></th><th>Cookie 型</th><th>サーバセッション型</th></tr></thead><tbody><tr><td>状態を持つ場所</td><td>ブラウザ（署名して書き換えを防ぐ）</td><td>サーバの表（ブラウザには番号だけ）</td></tr><tr><td>サーバを増やすとき</td><td>そのまま増やせる</td><td>セッションの表を共有する必要がある</td></tr><tr><td>強制的にログアウトさせる</td><td>難しい（期限まで有効）</td><td>表から消せばよい</td></tr><tr><td>Cookie が盗まれたら</td><td>期限まで使われうる</td><td>表から消せば止められる</td></tr></tbody></table>
+      <p class="sub">どちらの方式でも、Cookie が盗まれれば、なりすましが起きる（第8回のセッションハイジャック）。<br>vuln-webapp の教材アプリでは、2つの方式を切り替えて比べられる。</p></div>
+        <div class="pageno">10</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">4.3</div>
+        <h1 class="sec-name">Web API</h1>
+        <p class="sec-tag">プログラムどうしが HTTP で話す</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.3　Web API</div>
+        <h2>Web API：相手は人ではなくプログラム</h2>
+      </header><div class="body">
+      <div class="callout solid big">同じ HTTP で、HTML の代わりに JSON を返す</div>
+      <ul class="map">
+      <li><span class="m-a">ブラウザで人が見る</span><span class="m-arrow"></span>
+        <span class="m-b">HTML を返す</span></li>
+      <li><span class="m-a">プログラムが使う</span><span class="m-arrow"></span>
+        <span class="m-b">JSON を返す</span></li>
+      <li><span class="m-a">スマホのアプリ・IoT 機器・AI</span><span class="m-arrow"></span>
+        <span class="m-b">同じ API を呼ぶ</span></li></ul>
+      <p class="sub">天気、地図、決済、翻訳、LLM —— 多くのサービスが Web API を公開している。</p></div>
+        <div class="pageno">12</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.3　REST</div>
+        <h2>REST：資源を URL で、操作をメソッドで</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:15.25%"><col style="width:35.59%"><col style="width:49.15%"></colgroup><thead><tr><th>操作</th><th>メソッドと URL</th><th>意味</th></tr></thead><tbody><tr><td>一覧</td><td>GET /posts</td><td>投稿の一覧を取る</td></tr><tr><td>1件</td><td>GET /posts/42</td><td>42 番の投稿を取る</td></tr><tr><td>作成</td><td>POST /posts</td><td>新しい投稿を作る</td></tr><tr><td>更新</td><td>PUT /posts/42</td><td>42 番を置き換える</td></tr><tr><td>削除</td><td>DELETE /posts/42</td><td>42 番を消す</td></tr></tbody></table>
+      <div class="callout solid">URL が名詞、メソッドが動詞になる</div><p class="sub">REST は、2000年に Roy Fielding が博士論文で示した設計の考え方である。</p></div>
+        <div class="pageno">13</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.3　JSON</div>
+        <h2>JSON：データの書き方</h2>
+      </header><div class="body">
+      <div class="split"><div class="col"><div class="col-h">例：掲示板の投稿1件</div><pre class="code small">{
+  &quot;id&quot;: 42,
+  &quot;author&quot;: &quot;alice&quot;,
+  &quot;text&quot;: &quot;明日のゼミは14時から&quot;,
+  &quot;tags&quot;: [&quot;ゼミ&quot;, &quot;連絡&quot;],
+  &quot;likes&quot;: 3,
+  &quot;pinned&quot;: false
+}</pre></div><div class="col"><div class="col-h">読み方</div><ul class="bullets tight"><li>{ } はオブジェクト（名前と値の組）、[ ] は配列</li><li>文字列・数・真偽値・null を表せる</li><li>ほとんどのプログラミング言語で読み書きできる</li><li>Content-Type: application/json で送る</li><li>第6・7回の LLM API や MCP も、この形でやりとりする</li></ul></div></div>
+      </div>
+        <div class="pageno">14</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.3　押し出す通信</div>
+        <h2>サーバから送りたいとき：SSE と WebSocket</h2>
+      </header><div class="body"><p class="lead">HTTP は「要求があって初めて応答する」形なので、サーバから先に送りたいときに工夫が要る。</p>
+      <table class="tbl  "><colgroup><col style="width:30.51%"><col style="width:32.20%"><col style="width:37.29%"></colgroup><thead><tr><th>方式</th><th>向き</th><th>向いている用途</th></tr></thead><tbody><tr><td>ポーリング</td><td>クライアントが繰り返し聞く</td><td>単純だが、無駄な要求が多い</td></tr><tr><td>SSE（Server-Sent Events）</td><td>サーバ → クライアント（片方向）</td><td>通知、LLM の答えを少しずつ表示する（第6回）</td></tr><tr><td>WebSocket</td><td>双方向</td><td>チャット、共同編集、オンラインゲーム</td></tr></tbody></table>
+      </div>
+        <div class="pageno">15</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.3　確かめる</div>
+        <h2>確かめてみよう：公開されている API を呼ぶ</h2>
+      </header><div class="body"><div class="code-split">
+          <pre class="code small">curl -i https://api.github.com/users/octocat
+
+HTTP/2 200
+content-type: application/json; charset=utf-8
+x-ratelimit-remaining: 59
+
+{
+  &quot;login&quot;: &quot;octocat&quot;,
+  &quot;public_repos&quot;: …,
+  …
+}</pre>
+          <div class="side"><div class="side-h">読み方</div>
+            <div class="side-b">GitHub の API は、認証なしでも一部を呼べる（回数に制限がある）。<br><br>応答ヘッダの x-ratelimit-remaining で、残りの回数が分かる。使い切ると 403 や 429 が返る。<br><br>ブラウザで同じ URL を開くと、JSON がそのまま見える。</div></div>
+        </div></div>
+        <div class="pageno">16</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">4.4</div>
+        <h1 class="sec-name">OAuth 2.0 と OpenID Connect</h1>
+        <p class="sec-tag">パスワードを渡さずに、権限だけを渡す</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.4　OAuth</div>
+        <h2>OAuth 2.0：権限をトークンで渡す</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 04-02" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgNDMwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQzMCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQzMCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iNSIgeT0iMjAiIHdpZHRoPSIxMzAiIGhlaWdodD0iMzQiIHJ4PSI0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNzAuMCIgeT0iMzcuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+5Yip55So6ICFPC90ZXh0PjxsaW5lIHgxPSI3MCIgeTE9IjU0IiB4Mj0iNzAiIHkyPSIzNjAiIGNsYXNzPSJzbSBkYXNoIi8+PHJlY3QgeD0iMTg1IiB5PSIyMCIgd2lkdGg9IjEzMCIgaGVpZ2h0PSIzNCIgcng9IjQiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSIyNTAuMCIgeT0iMzcuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+5LqI5a6a566h55CG44Ki44OX44OqPC90ZXh0PjxsaW5lIHgxPSIyNTAiIHkxPSI1NCIgeDI9IjI1MCIgeTI9IjM2MCIgY2xhc3M9InNtIGRhc2giLz48cmVjdCB4PSIzODUiIHk9IjIwIiB3aWR0aD0iMTMwIiBoZWlnaHQ9IjM0IiByeD0iNCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjQ1MC4wIiB5PSIzNy4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj7oqo3lj6/jgrXjg7zjg5A8L3RleHQ+PGxpbmUgeDE9IjQ1MCIgeTE9IjU0IiB4Mj0iNDUwIiB5Mj0iMzYwIiBjbGFzcz0ic20gZGFzaCIvPjxyZWN0IHg9IjU3NSIgeT0iMjAiIHdpZHRoPSIxMzAiIGhlaWdodD0iMzQiIHJ4PSI0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNjQwLjAiIHk9IjM3LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPuOCq+ODrOODs+ODgOODvCBBUEk8L3RleHQ+PGxpbmUgeDE9IjY0MCIgeTE9IjU0IiB4Mj0iNjQwIiB5Mj0iMzYwIiBjbGFzcz0ic20gZGFzaCIvPjxsaW5lIHgxPSIyNDYiIHkxPSI4NiIgeDI9Ijc0IiB5Mj0iODYiIGNsYXNzPSJzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+PHRleHQgeD0iMTYwLjAiIHk9Ijc4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+4pGgIOiqjeWPr+OCteODvOODkOOBuOahiOWGhTwvdGV4dD48bGluZSB4MT0iNzQiIHkxPSIxMjgiIHgyPSI0NDYiIHkyPSIxMjgiIGNsYXNzPSJzYSIgbWFya2VyLWVuZD0idXJsKCNhYSkiLz48dGV4dCB4PSIxNjAiIHk9IjEyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYWNjIGIiPuKRoSDjg63jgrDjgqTjg7PjgZfjgaboqLHlj688L3RleHQ+PHRleHQgeD0iMTYwIiB5PSIxNDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+44CM6Kqt44G/5Y+W44KK44Gg44GR44CNPC90ZXh0PjxsaW5lIHgxPSI0NDYiIHkxPSIxNzAiIHgyPSIyNTQiIHkyPSIxNzAiIGNsYXNzPSJzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+PHRleHQgeD0iMzUwIiB5PSIxNjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7ikaIg6KqN5Y+v44Kz44O844OJ77yI5Yip55So6ICF57WM55Sx77yJPC90ZXh0PjxsaW5lIHgxPSIyNTQiIHkxPSIyMTIiIHgyPSI0NDYiIHkyPSIyMTIiIGNsYXNzPSJzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+PHRleHQgeD0iMzUwLjAiIHk9IjIwNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuKRoyDjgrPjg7zjg4njgpLjg4jjg7zjgq/jg7PjgavkuqTmj5s8L3RleHQ+PGxpbmUgeDE9IjQ0NiIgeTE9IjI0OCIgeDI9IjI1NCIgeTI9IjI0OCIgY2xhc3M9InMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz48dGV4dCB4PSIzNTAuMCIgeT0iMjQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Ki44Kv44K744K544OI44O844Kv44OzPC90ZXh0PjxsaW5lIHgxPSIyNTQiIHkxPSIyOTYiIHgyPSI2MzYiIHkyPSIyOTYiIGNsYXNzPSJzYSIgbWFya2VyLWVuZD0idXJsKCNhYSkiLz48dGV4dCB4PSI1NDUiIHk9IjI4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYWNjIGIiPuKRpCDjg4jjg7zjgq/jg7PjgpLku5jjgZHjgablkbzjgbY8L3RleHQ+PGxpbmUgeDE9IjYzNiIgeTE9IjMzNCIgeDI9IjI1NCIgeTI9IjMzNCIgY2xhc3M9InMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz48dGV4dCB4PSI1NDUiIHk9IjMyNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuS6iOWumuOBruS4gOimp++8iEpTT07vvIk8L3RleHQ+PHRleHQgeD0iMzYwIiB5PSIzOTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMgYiI+44Ki44OX44Oq44Gv5Yip55So6ICF44Gu44OR44K544Ov44O844OJ44KS5LiA5bqm44KC6KaL44Gq44GE44CC5Y+X44GR5Y+W44KL44Gu44Gv44CB57We44KJ44KM44Gf5qip6ZmQ44Gu44OI44O844Kv44Oz44Gg44GRPC90ZXh0Pjx0ZXh0IHg9IjM2MCIgeT0iNDE2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuODiOODvOOCr+ODs+OBq+OBr+evhOWbsuOBqOacn+mZkOOBjOOBguOCiuOAgeWIqeeUqOiAheOBr+W+jOOBi+OCieWPluOCiua2iOOBm+OCizwvdGV4dD48L3N2Zz4K"></div>
+      
+      
+      </div>
+        <div class="pageno">18</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.4　OAuth</div>
+        <h2>OAuth 2.0 と OpenID Connect</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:20.34%"><col style="width:39.83%"><col style="width:39.83%"></colgroup><thead><tr><th></th><th>OAuth 2.0</th><th>OpenID Connect</th></tr></thead><tbody><tr><td>目的</td><td>認可：このアプリに何をさせてよいか</td><td>認証：この人は誰か</td></tr><tr><td>受け取るもの</td><td>アクセストークン</td><td>ID トークン（誰がログインしたか）</td></tr><tr><td>例</td><td>「カレンダーの読み取りだけを許可する」</td><td>「Google でログイン」</td></tr></tbody></table>
+      <div class="callout solid">パスワードを渡さないので、権限を絞れ、期限を付けられ、後から取り消せる</div><p class="sub">第7回の AIエージェントも、メールやカレンダーを使う許可を OAuth で受け取っている。</p></div>
+        <div class="pageno">19</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">4.5</div>
+        <h1 class="sec-name">実習：Web API を作って呼ぶ</h1>
+        <p class="sec-tag">第3回の bottle を広げる</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.5　実習</div>
+        <h2>実習：JSON を返す API を作る（api.py）</h2>
+      </header><div class="body"><pre class="code small">from bottle import get, post, request, run
+
+posts = []
+
+@get('/api/posts')
+def list_posts():
+    return {'posts': posts}          # 辞書を返すと JSON になる
+
+@post('/api/posts')
+def add_post():
+    data = request.json              # 送られてきた JSON を読む
+    posts.append({'id': len(posts) + 1, 'text': data['text']})
+    return {'ok': True, 'count': len(posts)}
+
+run(host='localhost', port=8080)</pre><p class="sub">GET で一覧を返し、POST で1件を受け取る。bottle は、関数が辞書を返すと JSON にして Content-Type も付けてくれる。</p></div>
+        <div class="pageno">21</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">4.5　実習</div>
+        <h2>呼んでみる</h2>
+      </header><div class="body"><div class="code-split">
+          <pre class="code small">curl -X POST localhost:8080/api/posts \
+     -H 'Content-Type: application/json' \
+     -d '{&quot;text&quot;: &quot;こんにちは&quot;}'
+
+curl localhost:8080/api/posts
+# → {&quot;posts&quot;: [{&quot;id&quot;: 1, &quot;text&quot;: &quot;こんにちは&quot;}]}</pre>
+          <div class="side"><div class="side-h">やること</div>
+            <div class="side-b">① 2件投稿してから、一覧を取る。<br>② サーバを止めて起動し直すと、投稿は消える。なぜか（三層構成の DB の層がない）。<br>③ 存在しない URL を呼ぶと、何が返るか。<br>④ 発展：iot-handson の受信サーバに、温度を JSON で POST する。</div></div>
+        </div><p class="sub">Windows の PowerShell では引用符の扱いが違う。curl.exe を使い、JSON はファイルに書いて -d @post.json で送るとよい。</p></div>
+        <div class="pageno">22</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第4回</div>
+        <h2>演習</h2>
+      </header><div class="body"><ul class="ex">
+      <li><span class="ex-n">4-1</span><span class="ex-t">HTTP はステートレスなのに、ログイン状態が続くのはなぜか。Cookie の働きから説明せよ。</span></li>
+      <li><span class="ex-n">4-2</span><span class="ex-t">Cookie 型とサーバセッション型の違いを、強制的にログアウトさせるときの観点から説明せよ。</span></li>
+      <li><span class="ex-n">4-3</span><span class="ex-t">（手を動かす）実習の API に、投稿を1件消す DELETE /api/posts/&lt;id&gt; を追加せよ。</span></li>
+      <li><span class="ex-n">4-4</span><span class="ex-t">OAuth を使うと、外部のアプリにパスワードを教えずに済むのはなぜか。アクセストークンの性質とともに説明せよ。</span></li></ul></div>
+        <div class="pageno">23</div>
+      </section>
+<section class="slide dark ">
+      <div class="sum-wrap">
+        <h1 class="sum-t">まとめ</h1>
+        <ul class="sum">
+      <li><span class="s-h">Web アプリ</span><span class="s-b">ブラウザ・アプリサーバ・DB の三層。HTTP がステートレスだからサーバを増やせる</span></li>
+      <li><span class="s-h">Cookie</span><span class="s-b">ステートレスな HTTP に記憶を足す。状態をブラウザに持つか、サーバに持つか</span></li>
+      <li><span class="s-h">Web API</span><span class="s-b">HTML の代わりに JSON を返す。REST では URL が名詞、メソッドが動詞</span></li>
+      <li><span class="s-h">押し出す通信</span><span class="s-b">SSE は片方向、WebSocket は双方向。LLM の答えが少しずつ出るのは SSE</span></li>
+      <li><span class="s-h">OAuth</span><span class="s-b">パスワードを渡さず、絞った権限をトークンで渡す。OpenID Connect は「誰か」を伝える</span></li></ul>
+        <p class="next"><b>次回</b>　第5回　クラウド・仮想化・P2P</p>
+      </div></section>
+</div>
+<div id="hud"><span id="cur">1</span> / <span id="total">24</span></div>
+<div id="help" hidden>
+  <h3>操作</h3>
+  <table>
+    <tr><td>→ ↓ Space PageDown</td><td>次へ</td></tr>
+    <tr><td>← ↑ PageUp</td><td>前へ</td></tr>
+    <tr><td>Home / End</td><td>最初 / 最後</td></tr>
+    <tr><td>数字 + Enter</td><td>その番号へ</td></tr>
+    <tr><td>O</td><td>一覧表示</td></tr>
+    <tr><td>F</td><td>全画面</td></tr>
+    <tr><td>C</td><td>組版チェック（溢れの検出）</td></tr>
+    <tr><td>P</td><td>印刷（PDF 保存）</td></tr>
+    <tr><td>?</td><td>この画面</td></tr>
+  </table>
+  <p>印刷は1枚1ページで出る。PDF にすれば pptx を配るのと同じことができる。</p>
+</div>
+<script>
+
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var cur=0, buf='';
+  var hud=document.getElementById('cur'), help=document.getElementById('help');
+
+  // 板を画面に合わせて拡大縮小する
+  function fit(){
+    var s=Math.min(innerWidth/1280, innerHeight/720);
+    document.documentElement.style.setProperty('--s', s);
+    var ow=(310)/1280;
+    slides.forEach(function(el){ el.style.setProperty('--os', ow); });
+    if(document.body.classList.contains('overview')) layoutOverview();
+  }
+  function layoutOverview(){
+    // 一覧では実寸の板を縮めて置くので、親に実際の見かけの大きさを持たせる
+    var cell=deck.clientWidth/Math.max(1,Math.floor(deck.clientWidth/330));
+    var s=(cell-8)/1280;
+    slides.forEach(function(el){
+      el.style.setProperty('--os', s);
+      el.style.marginBottom=(720*s-720)+'px';
+      el.style.marginRight=(1280*s-1280)+'px';
+    });
+  }
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(el,j){ el.classList.toggle('on', j===cur); });
+    hud.textContent=cur+1;
+    if(location.hash!=='#'+(cur+1)) history.replaceState(null,'','#'+(cur+1));
+  }
+  function overview(on){
+    document.body.classList.toggle('overview', on);
+    if(on){ slides.forEach(function(el){ el.classList.add('on'); }); layoutOverview();
+            slides[cur].scrollIntoView({block:'center'}); }
+    else { slides.forEach(function(el){ el.style.margin=''; }); fit(); show(cur); }
+  }
+
+  // 組版チェック。実際に描いた結果を測るので、見積もりではなく事実が分かる。
+  // pptx では PowerPoint に描かせるまで分からなかった部分である。
+  function check(){
+    var bad=[];
+    slides.forEach(function(el,i){
+      var was=el.classList.contains('on');
+      el.classList.add('on');
+      var over=false;
+      [].slice.call(el.querySelectorAll('*')).forEach(function(n){
+        var r=n.getBoundingClientRect(), e=el.getBoundingClientRect();
+        if(r.height&&(r.bottom>e.bottom+1||r.right>e.right+1)) over=true;
+      });
+      if(el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1) over=true;
+      el.classList.toggle('overflow', over);
+      if(over) bad.push(i+1);
+      if(!was) el.classList.remove('on');
+    });
+    document.body.classList.add('check');
+    slides[cur].classList.add('on');
+    console.log(bad.length? '組版あふれ: '+bad.length+'枚 → '+bad.join(', ') : '組版あふれなし');
+    return bad;
+  }
+
+  addEventListener('resize', fit);
+  addEventListener('hashchange', function(){
+    var n=parseInt(location.hash.slice(1),10); if(n) show(n-1);
+  });
+  addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k>='0'&&k<='9'){ buf+=k; return; }
+    if(k==='Enter'){ if(buf){ show(parseInt(buf,10)-1); buf=''; } return; }
+    buf='';
+    switch(k){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); show(cur+1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); show(cur-1); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length-1); break;
+      case 'o': case 'O': overview(!document.body.classList.contains('overview')); break;
+      case 'f': case 'F':
+        if(document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen(); break;
+      case 'c': case 'C':
+        if(document.body.classList.contains('check')){
+          document.body.classList.remove('check');
+          slides.forEach(function(el){ el.classList.remove('overflow'); });
+        } else check();
+        break;
+      case 'p': case 'P': print(); break;
+      case '?': help.hidden=!help.hidden; break;
+      case 'Escape': help.hidden=true; if(document.body.classList.contains('overview')) overview(false); break;
+    }
+  });
+  deck.addEventListener('click', function(e){
+    var el=e.target.closest('.slide'); if(!el) return;
+    if(document.body.classList.contains('overview')){
+      show(slides.indexOf(el)); overview(false);
+    } else show(cur+1);
+  });
+
+  fit();
+  var n=parseInt(location.hash.slice(1),10);
+  show(n? n-1 : 0);
+  window.__check=check;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="300" class="bg"/><rect x="14" y="96" width="104" height="64" rx="4" class="tint s"/><text x="66.0" y="120.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">模擬アラート</text><text x="66.0" y="136.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">（JSON）</text><line x1="118" y1="128" x2="146" y2="128" class="s" marker-end="url(#a)"/><rect x="150" y="92" width="112" height="72" rx="4" class="accT s"/><text x="206.0" y="113.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">LLM API</text><text x="206.0" y="128.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">答えの形を</text><text x="206.0" y="143.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">JSON Schema で固定</text><line x1="262" y1="128" x2="290" y2="128" class="s" marker-end="url(#a)"/><rect x="294" y="80" width="150" height="96" rx="4" class="bg s"/><text x="369" y="98" text-anchor="middle" dominant-baseline="middle" class="t-xs b">AI の提案</text><text x="306" y="120" text-anchor="start" dominant-baseline="middle" class="t-xs m">action: isolate_host</text><text x="306" y="137" text-anchor="start" dominant-baseline="middle" class="t-xs m">target: mail-gw01</text><text x="306" y="154" text-anchor="start" dominant-baseline="middle" class="t-xs m">confidence: 0.82</text><line x1="444" y1="128" x2="472" y2="128" class="s" marker-end="url(#a)"/><polygon points="536,84 594,128 536,172 478,128" class="tint2 s"/><text x="536" y="120" text-anchor="middle" dominant-baseline="middle" class="t-xs b">判断ルール</text><text x="536" y="138" text-anchor="middle" dominant-baseline="middle" class="t-xs">（DSL）</text><rect x="614" y="56" width="96" height="46" rx="4" class="bg s"/><text x="662.0" y="71.5" text-anchor="middle" dominant-baseline="middle" class="t-xs">AI に任せる</text><text x="662.0" y="86.5" text-anchor="middle" dominant-baseline="middle" class="t-xs">（auto）</text><rect x="614" y="154" width="96" height="46" rx="4" class="accT s"/><text x="662.0" y="169.5" text-anchor="middle" dominant-baseline="middle" class="t-xs b">人間が承認</text><text x="662.0" y="184.5" text-anchor="middle" dominant-baseline="middle" class="t-xs b">（ask_human）</text><line x1="566" y1="106" x2="610" y2="80" class="s" marker-end="url(#a)"/><line x1="566" y1="150" x2="610" y2="176" class="sa" marker-end="url(#aa)"/><text x="360" y="236" text-anchor="middle" dominant-baseline="middle" class="t-xs">ルールの例：重要な機器の隔離は人間が確認する／AI の自信が 0.7 未満なら人間が確認する</text><text x="360" y="270" text-anchor="middle" dominant-baseline="middle" class="t-s b">速さ（AI に任せる）と安全（人間が見る）の釣り合いを、ルールとして書き表す</text></svg>

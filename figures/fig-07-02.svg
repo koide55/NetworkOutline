@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440" width="720" height="440" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="440" class="bg"/><rect x="8" y="20" width="144" height="34" rx="4" class="tint s"/><text x="80.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">利用者</text><line x1="80" y1="54" x2="80" y2="404" class="sm dash"/><rect x="198" y="20" width="144" height="34" rx="4" class="tint s"/><text x="270.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">プログラム（ホスト）</text><line x1="270" y1="54" x2="270" y2="404" class="sm dash"/><rect x="388" y="20" width="144" height="34" rx="4" class="tint s"/><text x="460.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">LLM API</text><line x1="460" y1="54" x2="460" y2="404" class="sm dash"/><rect x="568" y="20" width="144" height="34" rx="4" class="tint s"/><text x="640.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">ツール（メール検索）</text><line x1="640" y1="54" x2="640" y2="404" class="sm dash"/><line x1="84" y1="90" x2="266" y2="90" class="s" marker-end="url(#a)"/><text x="175.0" y="81" text-anchor="middle" dominant-baseline="middle" class="t-xs">「来週の会議を教えて」</text><text x="14" y="90" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">1</text><line x1="274" y1="132" x2="456" y2="132" class="s" marker-end="url(#a)"/><text x="365.0" y="123" text-anchor="middle" dominant-baseline="middle" class="t-xs">質問 ＋ 使える道具の一覧</text><text x="14" y="132" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">2</text><line x1="456" y1="174" x2="274" y2="174" class="sa" marker-end="url(#aa)"/><text x="365.0" y="165" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">道具の呼び出しを依頼（JSON）</text><text x="14" y="174" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">3</text><line x1="274" y1="216" x2="636" y2="216" class="sa" marker-end="url(#aa)"/><text x="365" y="207" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">実行する</text><text x="14" y="216" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">4</text><line x1="636" y1="258" x2="274" y2="258" class="s" marker-end="url(#a)"/><text x="365" y="249" text-anchor="middle" dominant-baseline="middle" class="t-xs">結果（招待メール3通）</text><text x="14" y="258" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">5</text><line x1="274" y1="300" x2="456" y2="300" class="s" marker-end="url(#a)"/><text x="365.0" y="291" text-anchor="middle" dominant-baseline="middle" class="t-xs">結果を添えて、もう一度送る</text><text x="14" y="300" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">6</text><line x1="456" y1="342" x2="274" y2="342" class="s" marker-end="url(#a)"/><text x="365.0" y="333" text-anchor="middle" dominant-baseline="middle" class="t-xs">答えの文章</text><text x="14" y="342" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">7</text><line x1="266" y1="384" x2="84" y2="384" class="s" marker-end="url(#a)"/><text x="175.0" y="375" text-anchor="middle" dominant-baseline="middle" class="t-xs">表示する</text><text x="14" y="384" text-anchor="start" dominant-baseline="middle" class="t-xs lbl m">8</text><text x="365" y="189" text-anchor="middle" dominant-baseline="middle" class="t-xs m lbl">search_mail {&quot;query&quot;: &quot;会議&quot;}</text><text x="360" y="428" text-anchor="middle" dominant-baseline="middle" class="t-s b">LLM は「この道具を、この引数で呼んで」と頼むだけ。実行するのはプログラムである</text></svg>

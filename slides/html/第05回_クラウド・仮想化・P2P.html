@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第5回 クラウド・仮想化・P2P｜通信工学通論</title>
+<style>
+
+:root{
+  --ink:#16191D; --paper:#FFFFFF; --tint:#EEF1F5; --tint2:#DDE4EC;
+  --acc:#0B5CAD; --accT:#D9E6F4; --mut:#5F6672; --dim:#9AA3B0;
+  --lightInk:#E8EBEF; --accLight:#6AB0F3; --code:#F5F7FA; --ghost:#2E3A4A;
+  --ja:"Yu Gothic Medium", "Yu Gothic", YuGothic, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; --mono:"SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0d10;font-family:var(--ja);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* 1280x720 の板を作り、画面の大きさに合わせて拡大縮小する。
+   どの画面でも同じ見た目になる —— スライドである以上これが要る。 */
+#deck{position:absolute;inset:0}
+.slide{
+  position:absolute;top:50%;left:50%;
+  width:1280px;height:720px;
+  transform:translate(-50%,-50%) scale(var(--s,1));
+  transform-origin:center center;
+  overflow:hidden;display:none;
+}
+.slide.on{display:block}
+.slide.light{background:var(--paper);color:var(--ink)}
+.slide.dark{background:var(--ink);color:var(--paper)}
+
+/* --- 明色スライドの骨格 --- */
+.slide.light header{position:absolute;top:33px;left:60px;right:60px}
+.kicker{font-size:16px;font-weight:700;color:var(--acc);letter-spacing:.02em}
+.slide.light h2{font-size:40px;font-weight:700;line-height:1.25;margin-top:6px}
+/* 内容の塊ごと、見出しと下端のあいだで縦に中央へ寄せる。
+   pptx では noteY を1枚ずつ手で詰めて注記を内容の直下に置いていた。
+   CSS は高さを知っているので、その手当てが要らない。 */
+.slide.light .body{position:absolute;top:130px;left:72px;right:72px;bottom:56px;
+  display:flex;flex-direction:column;gap:14px;justify-content:center}
+.pageno{position:absolute;right:60px;bottom:22px;font-size:13px;color:var(--mut)}
+
+.lead{font-size:20px;line-height:1.55;color:var(--ink)}
+.sub{font-size:17px;line-height:1.6;color:var(--mut)}
+.sub.center,.caption{text-align:center}
+.caption{font-size:20px;line-height:1.5;color:var(--ink)}
+.note{font-size:17px;line-height:1.5;font-weight:700;color:var(--acc);margin-top:8px}
+
+/* --- 意匠：マス目 --- */
+.motif{position:absolute;left:58px;bottom:56px;display:flex;gap:4px}
+.motif i{width:28px;height:19px;border:1px solid rgba(106,176,243,.45);border-radius:2px}
+.motif i.on{background:var(--accLight);border-color:var(--accLight)}
+.slide.title .motif{bottom:128px}
+
+/* --- 表紙 --- */
+.title-wrap{position:absolute;left:86px;top:188px;right:86px}
+.course{font-size:23px;color:var(--dim);letter-spacing:.12em}
+.slide.title h1{font-weight:700;line-height:1.2;margin-top:24px;color:var(--paper)}
+.tq{font-size:24px;line-height:1.5;color:var(--accLight);margin-top:28px}
+.affil{position:absolute;left:86px;bottom:22px;font-size:16px;color:var(--dim)}
+
+/* --- 今回の問い --- */
+.q-wrap{position:absolute;left:86px;right:86px;top:144px}
+.q-label{font-size:19px;font-weight:700;color:var(--accLight)}
+.q-big{font-size:48px;font-weight:700;line-height:1.35;margin-top:22px;color:var(--paper)}
+.q-sub{font-size:27px;color:var(--lightInk);margin-top:22px}
+.q-foot{font-size:19px;color:var(--dim);margin-top:40px}
+
+/* --- 節の区切り --- */
+.sec-wrap{position:absolute;left:86px;right:86px;top:230px}
+.sec-n{font-size:75px;font-weight:700;color:var(--ghost);line-height:1}
+.sec-name{font-size:51px;font-weight:700;color:var(--paper);margin-top:10px;line-height:1.2}
+.sec-tag{font-size:23px;color:var(--dim);margin-top:18px}
+
+/* --- 到達目標 --- */
+.goals{list-style:none;display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.goals li{display:flex;align-items:center;gap:18px}
+.goals .num{flex:none;width:48px;height:48px;border-radius:50%;
+  background:var(--accT);border:1.5px solid var(--acc);color:var(--acc);
+  font-size:19px;font-weight:700;display:grid;place-items:center}
+.g-h{font-size:21px;font-weight:700;color:var(--ink)}
+.g-b{font-size:19px;color:var(--mut);margin-left:12px}
+
+/* --- カード --- */
+.cards{display:grid;grid-template-columns:repeat(var(--per),1fr);gap:16px;align-content:start}
+.card{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:16px 18px}
+.card.acc{background:var(--accT);border-color:var(--acc)}
+.card-h{font-size:19px;font-weight:700;color:var(--ink)}
+.card.acc .card-h{color:var(--acc)}
+.card-b{font-size:16px;line-height:1.55;color:var(--mut);margin-top:8px}
+
+/* --- 囲み --- */
+.callout{border-radius:8px;padding:14px 20px}
+.callout.dashed{border:1.5px dashed var(--acc);background:var(--paper)}
+.callout.solid{border:1.5px solid var(--acc);background:var(--accT);
+  font-size:20px;font-weight:700;color:var(--acc);line-height:1.45}
+.callout.big{font-size:23px}
+.co-h{font-size:20px;font-weight:700;color:var(--acc)}
+.co-b{font-size:16px;line-height:1.5;color:var(--mut);margin-top:6px}
+
+/* --- 箇条書き --- */
+.bullets{list-style:none;display:flex;flex-direction:column;gap:10px}
+.bullets li{position:relative;padding-left:22px;font-size:21px;line-height:1.5;color:var(--ink)}
+.bullets li::before{content:"";position:absolute;left:4px;top:.62em;
+  width:7px;height:7px;border-radius:50%;background:var(--acc)}
+.bullets li.lv1{font-size:18px;color:var(--mut);padding-left:44px}
+.bullets li.lv1::before{left:26px;width:5px;height:5px;background:var(--mut)}
+.bullets.tight li{font-size:18px;gap:6px}
+
+/* --- コード --- */
+.code{background:var(--code);border:1px solid var(--tint2);border-radius:6px;
+  padding:16px 20px;font-family:var(--mono);font-size:17px;line-height:1.7;
+  color:var(--ink);white-space:pre;overflow:hidden}
+.code.small{font-size:15.5px}
+.code-split{display:grid;grid-template-columns:1fr .92fr;gap:22px;align-items:start}
+.side-h{font-size:19px;font-weight:700;color:var(--ink)}
+.side-b{font-size:17px;line-height:1.6;color:var(--mut);margin-top:8px}
+
+/* --- 表 --- */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.tbl th,.tbl td{border:1px solid var(--tint2);padding:7px 11px;font-size:17px;
+  line-height:1.4;text-align:left;vertical-align:middle;word-break:break-word}
+.tbl th{background:var(--tint);font-weight:700}
+.tbl.mono{font-family:var(--mono);font-size:16px}
+.tbl.mono th{font-family:var(--ja)}
+.tbl.center th,.tbl.center td{text-align:center}
+
+/* --- 左右2段 --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.col{display:flex;flex-direction:column;gap:11px}
+.col-h{font-size:20px;font-weight:700;color:var(--ink)}
+.col-b{font-size:17px;line-height:1.65;color:var(--mut)}
+.col-n{font-size:17px;font-weight:700;color:var(--acc)}
+
+/* --- 主張と対応 --- */
+.map{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.map li{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:8px}
+.m-a{font-size:20px;color:var(--ink);text-align:right}
+.m-arrow{height:3px;background:var(--acc);position:relative;border-radius:2px}
+.m-arrow::after{content:"";position:absolute;right:-1px;top:-5px;
+  border:7px solid transparent;border-left-color:var(--acc);border-right:0}
+.m-b{font-size:21px;font-weight:700;color:var(--acc)}
+
+/* --- 手順 --- */
+.steps{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:10px;align-items:stretch}
+.step{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:12px 12px 14px}
+.step.first{background:var(--accT);border-color:var(--acc)}
+.st-n{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--acc)}
+.st-h{font-size:17px;font-weight:700;color:var(--ink);margin-top:6px;line-height:1.3}
+.st-b{font-size:15px;color:var(--mut);margin-top:6px;line-height:1.45}
+
+/* --- 図 --- */
+/* 図は枠いっぱいまで伸ばす。SVG なので拡大しても粗くならない。
+   pptx 版も箱に合わせて拡大していたので、そこは同じ振る舞いにしてある。 */
+.figwrap{flex:1;min-height:0;display:flex}
+.fig{width:100%;height:100%;object-fit:contain}
+.fig-missing{color:#b00;font-size:20px;text-align:center;padding:40px}
+
+/* --- 演習 --- */
+.ex{list-style:none;display:flex;flex-direction:column;gap:16px}
+.ex li{display:flex;gap:18px;align-items:flex-start}
+.ex-n{flex:none;width:74px;padding:5px 0;text-align:center;border-radius:7px;
+  background:var(--accT);border:1px solid var(--acc);color:var(--acc);
+  font-family:var(--mono);font-size:17px;font-weight:700}
+.ex-t{font-size:19px;line-height:1.55;color:var(--ink);padding-top:3px}
+
+/* --- まとめ --- */
+.sum-wrap{position:absolute;left:86px;right:86px;top:74px;bottom:74px;
+  display:flex;flex-direction:column}
+.sum-t{font-size:40px;font-weight:700;color:var(--paper)}
+.sum{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:26px}
+.sum li{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:baseline}
+.s-h{font-size:20px;font-weight:700;color:var(--accLight)}
+.s-b{font-size:18px;line-height:1.5;color:var(--lightInk)}
+.next{font-size:17px;color:var(--dim);margin-top:auto;line-height:1.5}
+.next b{color:var(--accLight)}
+
+/* --- 画面まわり --- */
+#hud{position:fixed;left:16px;bottom:12px;font-size:13px;color:#7c8694;
+  font-family:var(--mono);z-index:20;user-select:none}
+#help{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);
+  background:#fff;color:var(--ink);border-radius:12px;padding:26px 30px;z-index:30;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);font-size:15px;max-width:520px}
+#help h3{font-size:19px;margin-bottom:14px}
+#help table{border-collapse:collapse;width:100%}
+#help td{padding:5px 10px 5px 0;vertical-align:top}
+#help td:first-child{font-family:var(--mono);color:var(--acc);white-space:nowrap}
+#help p{margin-top:14px;color:var(--mut);font-size:13.5px;line-height:1.6}
+
+/* --- 一覧表示 --- */
+body.overview{overflow:auto}
+body.overview #deck{position:static;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;padding:22px}
+body.overview .slide{position:relative;top:auto;left:auto;display:block;
+  transform:scale(var(--os));transform-origin:top left;
+  width:1280px;height:720px;cursor:pointer;
+  outline:2px solid #2a3340;border-radius:2px}
+body.overview .slide.on{outline:3px solid var(--accLight)}
+body.overview .sl-wrap{overflow:hidden}
+
+/* --- 組版チェック：実際に溢れた箇所だけを赤で示す --- */
+body.check .slide.overflow{outline:4px solid #e0453a;outline-offset:-4px}
+body.check .slide.overflow::after{content:"組版あふれ";position:absolute;
+  right:0;top:0;background:#e0453a;color:#fff;font-size:13px;padding:3px 9px;
+  font-weight:700;z-index:9}
+
+/* --- 印刷：1枚1ページ。PDF にすれば配布できる --- */
+@page{size:1280px 720px;margin:0}
+@media print{
+  html,body{overflow:visible;background:#fff;height:auto}
+  #hud,#help{display:none!important}
+  #deck{position:static}
+  .slide{position:relative!important;display:block!important;top:auto;left:auto;
+    transform:none!important;page-break-after:always;break-after:page;
+    width:1280px;height:720px}
+  .slide:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="deck">
+<section class="slide dark title">
+      <div class="title-wrap">
+        <div class="course">通信工学通論</div>
+        <h1 style="font-size:45px">第5回　クラウド・仮想化・P2P</h1>
+        <p class="tq">アプリはどこで動いているのか。サーバを置かずに動かす形はありうるのか。</p>
+      </div>
+      <div class="affil">九州大学</div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide dark ">
+      <div class="q-wrap">
+        <div class="q-label">今回の問い</div>
+        <p class="q-big">アプリは、<br>どこで動いているのか。</p>
+        <p class="q-sub">そして、サーバを置かずに動かす形はありうるのか。</p>
+        <p class="q-foot">この90分で、この問いに答えを出す。</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第5回</div>
+        <h2>到達目標</h2>
+      </header><div class="body"><ol class="goals">
+      <li><span class="num">1</span>
+        <span class="g-h">クラウド</span><span class="g-b">で何が変わったかを、責任の分け方とともに説明できる</span></li>
+      <li><span class="num">2</span>
+        <span class="g-h">仮想機械とコンテナ</span><span class="g-b">の違いを説明できる</span></li>
+      <li><span class="num">3</span>
+        <span class="g-h">Docker</span><span class="g-b">で Web サーバと DB を動かせる</span></li>
+      <li><span class="num">4</span>
+        <span class="g-h">P2P</span><span class="g-b">の仕組みと、利点・弱点を説明できる</span></li>
+      <li><span class="num">5</span>
+        <span class="g-h">AI を支えるインフラ</span><span class="g-b">の特徴（GPU、学習と推論、電力）を説明できる</span></li></ol></div>
+        <div class="pageno">3</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">5.1</div>
+        <h1 class="sec-name">クラウドコンピューティング</h1>
+        <p class="sec-tag">本質は、失敗のコストが下がったこと</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.1　クラウド</div>
+        <h2>何が変わったのか</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:22.03%"><col style="width:44.07%"><col style="width:33.90%"></colgroup><thead><tr><th></th><th>自前で持つ（オンプレミス）</th><th>クラウド</th></tr></thead><tbody><tr><td>調達</td><td>見積り・発注・搬入・設置に数週間〜数か月</td><td>数分</td></tr><tr><td>費用の性質</td><td>設備投資（先に大きく払う）</td><td>経費（使った分だけ）</td></tr><tr><td>容量の決め方</td><td>ピークに合わせて買う</td><td>需要に応じて増減させる</td></tr><tr><td>失敗のコスト</td><td>買った機材が無駄になる</td><td>消せば止まる</td></tr></tbody></table>
+      <div class="callout solid">もっとも大きな変化は、失敗のコストが下がったこと</div><p class="sub">履修登録のシステムは、年に数日だけ負荷が跳ね上がり、残りの日は空いている。<br>「試してみて、駄目ならやめる」が数千円でできるようになった。</p></div>
+        <div class="pageno">5</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.1　クラウド</div>
+        <h2>サービスの形</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:16.95%"><col style="width:50.85%"><col style="width:32.20%"></colgroup><thead><tr><th>形</th><th>借りるもの</th><th>例</th></tr></thead><tbody><tr><td>IaaS</td><td>仮想機械・ネットワーク・ストレージ。OS から上は自分で用意する</td><td>Amazon EC2、Google Compute Engine</td></tr><tr><td>PaaS</td><td>アプリを動かす環境まで。アプリとデータだけを用意する</td><td>Google App Engine など</td></tr><tr><td>SaaS</td><td>アプリそのもの</td><td>Gmail、Microsoft 365、Zoom</td></tr><tr><td>サーバレス</td><td>関数を置くだけ。呼ばれたときだけ動き、動いた分だけ払う</td><td>AWS Lambda など</td></tr></tbody></table>
+      <p class="sub">下の行ほど、事業者に任せる範囲が広い。次の図で、誰が何に責任を持つかを見る。</p></div>
+        <div class="pageno">6</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.1　クラウド</div>
+        <h2>サービスの形と責任の分け方</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 co-08-05" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgNDAwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQwMCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQwMCIgY2xhc3M9ImJnIi8+PHRleHQgeD0iMTM0LjAiIHk9IjQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0iYiI+44Kq44Oz44OX44Os44Of44K5PC90ZXh0PjxyZWN0IHg9IjYwIiB5PSI1OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzNC4wIiB5PSI3My4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Ki44OX44Oq44Kx44O844K344On44OzPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSI4OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzNC4wIiB5PSIxMDMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODh+ODvOOCvzwvdGV4dD48cmVjdCB4PSI2MCIgeT0iMTE4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iMTM0LjAiIHk9IjEzMy4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Op44Oz44K/44Kk44OgPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIxNDgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSIxMzQuMCIgeT0iMTYzLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg5/jg4njg6vjgqbjgqfjgqI8L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjE3OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzNC4wIiB5PSIxOTMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPk9TPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIyMDgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSIxMzQuMCIgeT0iMjIzLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7ku67mg7PljJY8L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjIzOCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzNC4wIiB5PSIyNTMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCteODvOODkDwvdGV4dD48cmVjdCB4PSI2MCIgeT0iMjY4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iMTM0LjAiIHk9IjI4My4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44K544OI44Os44O844K4PC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIyOTgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSIxMzQuMCIgeT0iMzEzLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg43jg4Pjg4jjg6/jg7zjgq88L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjMyOCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzNC4wIiB5PSIzNDMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuaWveiorTwvdGV4dD48bGluZSB4MT0iNTYiIHkxPSIzNTgiIHgyPSIyMTIiIHkyPSIzNTgiIGNsYXNzPSJzMiIvPjx0ZXh0IHg9IjI5Ni4wIiB5PSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9ImIiPklhYVM8L3RleHQ+PHJlY3QgeD0iMjIyIiB5PSI1OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjxyZWN0IHg9IjIyMiIgeT0iODgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJhY2NUIHMiLz48cmVjdCB4PSIyMjIiIHk9IjExOCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjxyZWN0IHg9IjIyMiIgeT0iMTQ4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0iYWNjVCBzIi8+PHJlY3QgeD0iMjIyIiB5PSIxNzgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJhY2NUIHMiLz48cmVjdCB4PSIyMjIiIHk9IjIwOCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjIyMiIgeT0iMjM4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iMjIyIiB5PSIyNjgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSIyMjIiIHk9IjI5OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjIyMiIgeT0iMzI4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PGxpbmUgeDE9IjIxOCIgeTE9IjIwOCIgeDI9IjM3NCIgeTI9IjIwOCIgY2xhc3M9InMyIi8+PHRleHQgeD0iNDU4LjAiIHk9IjQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0iYiI+UGFhUzwvdGV4dD48cmVjdCB4PSIzODQiIHk9IjU4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0iYWNjVCBzIi8+PHJlY3QgeD0iMzg0IiB5PSI4OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9ImFjY1QgcyIvPjxyZWN0IHg9IjM4NCIgeT0iMTE4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iMzg0IiB5PSIxNDgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSIzODQiIHk9IjE3OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjM4NCIgeT0iMjA4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iMzg0IiB5PSIyMzgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSIzODQiIHk9IjI2OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjM4NCIgeT0iMjk4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iMzg0IiB5PSIzMjgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48bGluZSB4MT0iMzgwIiB5MT0iMTE4IiB4Mj0iNTM2IiB5Mj0iMTE4IiBjbGFzcz0iczIiLz48dGV4dCB4PSI2MjAuMCIgeT0iNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJiIj5TYWFTPC90ZXh0PjxyZWN0IHg9IjU0NiIgeT0iNTgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSI1NDYiIHk9Ijg4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iNTQ2IiB5PSIxMTgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSI1NDYiIHk9IjE0OCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjU0NiIgeT0iMTc4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iNTQ2IiB5PSIyMDgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSI1NDYiIHk9IjIzOCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjU0NiIgeT0iMjY4IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjMwIiBjbGFzcz0idGludCBzIi8+PHJlY3QgeD0iNTQ2IiB5PSIyOTgiIHdpZHRoPSIxNDgiIGhlaWdodD0iMzAiIGNsYXNzPSJ0aW50IHMiLz48cmVjdCB4PSI1NDYiIHk9IjMyOCIgd2lkdGg9IjE0OCIgaGVpZ2h0PSIzMCIgY2xhc3M9InRpbnQgcyIvPjxyZWN0IHg9IjYwIiB5PSIzNjgiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxNCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9Ijg4IiB5PSIzNzUiIHRleHQtYW5jaG9yPSJzdGFydCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuWIqeeUqOiAheOBruiyrOS7uzwvdGV4dD48cmVjdCB4PSIxOTAiIHk9IjM2OCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjE0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMjE4IiB5PSIzNzUiIHRleHQtYW5jaG9yPSJzdGFydCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuS6i+alreiAheOBruiyrOS7uzwvdGV4dD48dGV4dCB4PSI1MDAiIHk9IjM3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+5aKD55WM44GM5LiK44GM44KL44G744Gp5Lu744Gb44KL56+E5Zuy44GM5bqD44GEPC90ZXh0Pjwvc3ZnPgo="></div>
+      
+      <p class="sub center">事業者は施設・機材・ハイパーバイザを、利用者はアクセス権限・データ・アカウントの管理を受け持つ。<br>実際の情報漏えいの多くは、事業者ではなく利用者側の設定の誤りによる。</p>
+      </div>
+        <div class="pageno">7</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.1　クラウド</div>
+        <h2>クラウドの暗黒面</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">ベンダロックイン</div>
+      <div class="card-b">特定の事業者のサービスに頼り切ると、移るのが事実上できなくなる</div>
+    </div><div class="card">
+      <div class="card-h">障害の巻き添え</div>
+      <div class="card-b">事業者の障害で、無関係な多くのサービスが同時に止まる</div>
+    </div><div class="card">
+      <div class="card-h">費用の逆転</div>
+      <div class="card-b">使う量が安定して多いと、自前のほうが安い。設定の誤りや攻撃で請求が跳ね上がる</div>
+    </div><div class="card">
+      <div class="card-h">データの所在</div>
+      <div class="card-b">国をまたいだ保管が、各国の法律に触れうる</div>
+    </div><div class="card">
+      <div class="card-h">見えにくさ</div>
+      <div class="card-b">中で何が起きているか分からず、問題の切り分けが難しい</div>
+    </div><div class="card">
+      <div class="card-h">サービスの終了</div>
+      <div class="card-b">事業者の都合で機能が廃止される</div>
+    </div></div>
+      <p class="note">大きな事業者ほど、障害の影響範囲が広い。効率のための集中が、社会全体の弱点にもなっている。</p></div>
+        <div class="pageno">8</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">5.2</div>
+        <h1 class="sec-name">仮想化とコンテナ</h1>
+        <p class="sec-tag">「計算機そのもの」を抽象化する</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.2　仮想化</div>
+        <h2>仮想化で得られるもの</h2>
+      </header><div class="body"><p class="lead">1台の物理計算機の上に、複数の「仮想的な計算機」を作る。それを実現するソフトウェアがハイパーバイザである。</p>
+      <div class="cards" style="--per:2"><div class="card">
+      <div class="card-h">集約</div>
+      <div class="card-b">1台の物理サーバに多くの仮想機械を載せ、資源を無駄なく使う</div>
+    </div><div class="card">
+      <div class="card-h">分離</div>
+      <div class="card-b">ある仮想機械の障害や侵害が、ほかに及びにくい</div>
+    </div><div class="card">
+      <div class="card-h">持ち運べる</div>
+      <div class="card-b">動いたまま、別の物理サーバへ移せる（ライブマイグレーション）</div>
+    </div><div class="card">
+      <div class="card-h">網も仮想化する</div>
+      <div class="card-b">物理の網の上に、独立した仮想の網を作る（SDN）</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">これが、そのままクラウドの技術的な土台になる</div>
+        <div class="co-b">ハイパーバイザの例：VMware、Hyper-V、KVM、Xen</div>
+      </div></div>
+        <div class="pageno">10</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.2　仮想化</div>
+        <h2>仮想機械とコンテナ</h2>
+      </header><div class="body"><p class="lead">仮想機械には無駄がある。OS を丸ごと複製していることである。</p>
+      <div class="figwrap"><img class="fig" alt="図 co-08-04" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgMzgwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjM4MCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzAwIiBoZWlnaHQ9IjM4MCIgY2xhc3M9ImJnIi8+PHRleHQgeD0iMTgwIiB5PSIzMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9ImIiPuS7ruaDs+apn+aisDwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMzAwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjQwIiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9IjE4MC4wIiB5PSIzMjAuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyI+44OP44O844OJ44Km44Kn44KiPC90ZXh0PjxyZWN0IHg9IjQwIiB5PSIyNTYiIHdpZHRoPSIyODAiIGhlaWdodD0iNDAiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSIxODAuMCIgeT0iMjc2LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMiPuODj+OCpOODkeODvOODkOOCpOOCtjwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMTI4IiB3aWR0aD0iODgiIGhlaWdodD0iMTI4IiBjbGFzcz0ibm9uZSBzIi8+PHJlY3QgeD0iNDQiIHk9IjEzMiIgd2lkdGg9IjgwIiBoZWlnaHQ9IjM0IiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iODQuMCIgeT0iMTQ5LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jgqLjg5fjg6o8L3RleHQ+PHJlY3QgeD0iNDQiIHk9IjE3MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjM0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iODQuMCIgeT0iMTg3LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg6njgqTjg5bjg6njg6o8L3RleHQ+PHJlY3QgeD0iNDQiIHk9IjIwOCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjQwIiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9Ijg0LjAiIHk9IjIyOC4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Ky44K544OIIE9TPC90ZXh0PjxyZWN0IHg9IjEzNCIgeT0iMTI4IiB3aWR0aD0iODgiIGhlaWdodD0iMTI4IiBjbGFzcz0ibm9uZSBzIi8+PHJlY3QgeD0iMTM4IiB5PSIxMzIiIHdpZHRoPSI4MCIgaGVpZ2h0PSIzNCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjE3OC4wIiB5PSIxNDkuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCouODl+ODqjwvdGV4dD48cmVjdCB4PSIxMzgiIHk9IjE3MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjM0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMTc4LjAiIHk9IjE4Ny4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Op44Kk44OW44Op44OqPC90ZXh0PjxyZWN0IHg9IjEzOCIgeT0iMjA4IiB3aWR0aD0iODAiIGhlaWdodD0iNDAiIGNsYXNzPSJ0aW50MiBzIi8+PHRleHQgeD0iMTc4LjAiIHk9IjIyOC4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Ky44K544OIIE9TPC90ZXh0PjxyZWN0IHg9IjIyOCIgeT0iMTI4IiB3aWR0aD0iODgiIGhlaWdodD0iMTI4IiBjbGFzcz0ibm9uZSBzIi8+PHJlY3QgeD0iMjMyIiB5PSIxMzIiIHdpZHRoPSI4MCIgaGVpZ2h0PSIzNCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjI3Mi4wIiB5PSIxNDkuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCouODl+ODqjwvdGV4dD48cmVjdCB4PSIyMzIiIHk9IjE3MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjM0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMjcyLjAiIHk9IjE4Ny4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Op44Kk44OW44Op44OqPC90ZXh0PjxyZWN0IHg9IjIzMiIgeT0iMjA4IiB3aWR0aD0iODAiIGhlaWdodD0iNDAiIGNsYXNzPSJ0aW50MiBzIi8+PHRleHQgeD0iMjcyLjAiIHk9IjIyOC4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Ky44K544OIIE9TPC90ZXh0Pjx0ZXh0IHg9IjE4MCIgeT0iMTA4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBhY2MgYiI+44Kr44O844ON44Or44GMM+OBpOWLleOBjzwvdGV4dD48dGV4dCB4PSIxODAiIHk9IjM1OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7otbfli5XjgavmlbDljYHnp5LjgIHjg6Hjg6Ljg6rjga8gR0Ig5Y2Y5L2N44CC5YiG6Zui44Gv5by344GEPC90ZXh0Pjx0ZXh0IHg9IjUyMCIgeT0iMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJiIj7jgrPjg7Pjg4bjg4o8L3RleHQ+PHJlY3QgeD0iMzgwIiB5PSIzMDAiIHdpZHRoPSIyODAiIGhlaWdodD0iNDAiIGNsYXNzPSJ0aW50MiBzIi8+PHRleHQgeD0iNTIwLjAiIHk9IjMyMC4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIj7jg4/jg7zjg4njgqbjgqfjgqI8L3RleHQ+PHJlY3QgeD0iMzgwIiB5PSIyNTYiIHdpZHRoPSIyODAiIGhlaWdodD0iNDAiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI1MjAuMCIgeT0iMjc2LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMiPuODm+OCueODiCBPU++8iOOCq+ODvOODjeODq+OBrzHjgaTvvIk8L3RleHQ+PHJlY3QgeD0iMzgwIiB5PSIyMTIiIHdpZHRoPSIyODAiIGhlaWdodD0iMzQiIGNsYXNzPSJ0aW50MiBzIi8+PHRleHQgeD0iNTIwLjAiIHk9IjIyOS4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Kz44Oz44OG44OK44Op44Oz44K/44Kk44OgPC90ZXh0PjxyZWN0IHg9IjM4MCIgeT0iOTgiIHdpZHRoPSI4OCIgaGVpZ2h0PSI4MCIgY2xhc3M9Im5vbmUgcyIvPjxyZWN0IHg9IjM4NCIgeT0iMTAyIiB3aWR0aD0iODAiIGhlaWdodD0iMzQiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSI0MjQuMCIgeT0iMTE5LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jgqLjg5fjg6o8L3RleHQ+PHJlY3QgeD0iMzg0IiB5PSIxNDAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIzNCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjQyNC4wIiB5PSIxNTcuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODqeOCpOODluODqeODqjwvdGV4dD48cmVjdCB4PSI0NzQiIHk9Ijk4IiB3aWR0aD0iODgiIGhlaWdodD0iODAiIGNsYXNzPSJub25lIHMiLz48cmVjdCB4PSI0NzgiIHk9IjEwMiIgd2lkdGg9IjgwIiBoZWlnaHQ9IjM0IiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iNTE4LjAiIHk9IjExOS4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Ki44OX44OqPC90ZXh0PjxyZWN0IHg9IjQ3OCIgeT0iMTQwIiB3aWR0aD0iODAiIGhlaWdodD0iMzQiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI1MTguMCIgeT0iMTU3LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg6njgqTjg5bjg6njg6o8L3RleHQ+PHJlY3QgeD0iNTY4IiB5PSI5OCIgd2lkdGg9Ijg4IiBoZWlnaHQ9IjgwIiBjbGFzcz0ibm9uZSBzIi8+PHJlY3QgeD0iNTcyIiB5PSIxMDIiIHdpZHRoPSI4MCIgaGVpZ2h0PSIzNCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjYxMi4wIiB5PSIxMTkuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuOCouODl+ODqjwvdGV4dD48cmVjdCB4PSI1NzIiIHk9IjE0MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjM0IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNjEyLjAiIHk9IjE1Ny4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Op44Kk44OW44Op44OqPC90ZXh0Pjx0ZXh0IHg9IjUyMCIgeT0iNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGFjYyBiIj7jgrLjgrnjg4ggT1Mg44Gu5bGk44GM44Gq44GEPC90ZXh0Pjx0ZXh0IHg9IjUyMCIgeT0iMzU4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPui1t+WLleOBrzHnp5LmnKrmuoDjgIHjg6Hjg6Ljg6rjga8gTUIg5Y2Y5L2N44CC5YiG6Zui44Gv5Lit56iL5bqmPC90ZXh0Pjwvc3ZnPgo="></div>
+      <p class="caption">コンテナはカーネルを1つ共有したまま、プロセスから見える世界だけを分ける。</p>
+      
+      </div>
+        <div class="pageno">11</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.2　仮想化</div>
+        <h2>どちらを選ぶか</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:22.03%"><col style="width:32.20%"><col style="width:45.76%"></colgroup><thead><tr><th></th><th>仮想機械</th><th>コンテナ</th></tr></thead><tbody><tr><td>分けるもの</td><td>ハードウェア</td><td>プロセスから見える世界と資源</td></tr><tr><td>カーネル</td><td>仮想機械ごとに1つ</td><td>ホストのものを共有</td></tr><tr><td>起動時間</td><td>数十秒</td><td>1秒未満</td></tr><tr><td>メモリ</td><td>GB 単位</td><td>MB 単位</td></tr><tr><td>分離の強さ</td><td>強い</td><td>中程度（カーネルの弱点は共有される）</td></tr><tr><td>違う OS</td><td>動かせる</td><td>動かせない</td></tr></tbody></table>
+      <p class="sub">強い分離が要るとき（別の顧客の処理、信頼できないコード）は仮想機械、自分たちのアプリを効率よく<br>たくさん動かすときはコンテナ。クラウドでは「仮想機械の中でコンテナ」が一般的である。</p><p class="note">コンテナが数千になると人手では管理できない。これを自動化するのが Kubernetes である。</p></div>
+        <div class="pageno">12</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.2　セキュリティ</div>
+        <h2>仮想化とセキュリティ</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:2"><div class="card">
+      <div class="card-h">土台を信頼できるか</div>
+      <div class="card-b">ハイパーバイザやホスト OS が乗っ取られると、上のすべてが危ない。起動時に正しさを確かめる仕組み（セキュアブート、TPM）</div>
+    </div><div class="card">
+      <div class="card-h">コンテナの分離は中程度</div>
+      <div class="card-b">カーネルを共有するので、カーネルの弱点を突かれると分離が破られうる</div>
+    </div><div class="card">
+      <div class="card-h">イメージの出どころ</div>
+      <div class="card-b">公開イメージには、古い部品や悪意あるものが混ざることがある。信頼できるものを使い、更新し続ける</div>
+    </div><div class="card">
+      <div class="card-h">設定の誤り</div>
+      <div class="card-b">管理画面やストレージを、誤って誰でも見られる状態にする事故が多い</div>
+    </div></div>
+      </div>
+        <div class="pageno">13</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">5.3</div>
+        <h1 class="sec-name">実習：Docker で動かす</h1>
+        <p class="sec-tag">コマンド1つで、Web サーバも DB も立つ</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.3　実習1</div>
+        <h2>実習1：Web サーバを立てる</h2>
+      </header><div class="body"><div class="code-split">
+          <pre class="code small">docker run --name nginx01 --detach \
+           --publish 18888:80 nginx
+docker ps
+curl -s http://localhost:18888/ | head
+docker logs nginx01
+
+# 片付け
+docker stop nginx01
+docker rm nginx01</pre>
+          <div class="side"><div class="side-h">読み方</div>
+            <div class="side-b">--publish 18888:80 は、手元の 18888 番をコンテナの 80 番につなぐ（第1回のポート番号）。<br><br>docker logs で、届いた HTTP の要求が1行ずつ見える（第3回）。<br><br>止めて消せば、跡形もなくなる。</div></div>
+        </div><p class="sub">教材：docker-lesson の演習01。Docker Desktop のインストールは setup/README.md を参照。</p></div>
+        <div class="pageno">15</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.3　実習2</div>
+        <h2>実習2：DB を立てて、中に入る</h2>
+      </header><div class="body"><div class="code-split">
+          <pre class="code small">docker run --name mydb -d \
+  --env MYSQL_ROOT_PASSWORD=hello001 \
+  -p 3306:3306 mysql:8.0
+
+docker exec -it mydb mysql -uroot -phello001
+
+mysql&gt; CREATE DATABASE demo;
+mysql&gt; USE demo;
+mysql&gt; CREATE TABLE posts (id INT, text TEXT);</pre>
+          <div class="side"><div class="side-h">やること</div>
+            <div class="side-b">① 起動には10〜20秒かかる。docker logs で ready for connections を待つ。<br>② テーブルを作り、データを入れて読む。<br>③ 第4回の API に足りなかった「DB の層」が、これで手に入る。<br><br>パスワードは演習用。実際の運用では使わない。</div></div>
+        </div><p class="sub">教材：docker-lesson の演習03。</p></div>
+        <div class="pageno">16</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.3　実習3</div>
+        <h2>実習3：自分のイメージを作る</h2>
+      </header><div class="body"><pre class="code small"># Dockerfile
+FROM alpine:3.20
+CMD [&quot;sh&quot;, &quot;-c&quot;, &quot;echo 'Hello from my first image!' &amp;&amp; date&quot;]
+
+docker build -t myhello:1.0 .
+docker run --rm myhello:1.0
+docker images | grep myhello</pre><p class="sub">イメージはコンテナの「型」で、作り方を Dockerfile に書く。同じイメージからは、どの計算機でも同じ環境が立つ。<br>第4回の api.py を入れたイメージを作れば、そのままクラウドに持って行ける。教材：docker-lesson の演習04。</p></div>
+        <div class="pageno">17</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">5.4</div>
+        <h1 class="sec-name">P2P：サーバを置かない形</h1>
+        <p class="sec-tag">参加者どうしが、互いに配り合う</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.4　P2P</div>
+        <h2>クライアント・サーバと P2P</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:30.51%"><col style="width:34.75%"><col style="width:34.75%"></colgroup><thead><tr><th></th><th>クライアント・サーバ</th><th>P2P</th></tr></thead><tbody><tr><td>提供する側</td><td>サーバ（決まっている）</td><td>参加者全員（ピア）</td></tr><tr><td>規模が急に大きくなったら</td><td>サーバを増やす必要がある</td><td>配る側も増えるので耐えられる</td></tr><tr><td>障害</td><td>サーバが止まると全体が止まる</td><td>一部が抜けても続く</td></tr><tr><td>管理・監視</td><td>しやすい</td><td>難しい</td></tr><tr><td>データの一元的な管理</td><td>得意</td><td>苦手</td></tr></tbody></table>
+      </div>
+        <div class="pageno">19</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.4　P2P</div>
+        <h2>オーバレイネットワークとファイルの交換</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 05-01" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgNDAwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwMCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwMCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iMzAiIHk9IjMwMCIgd2lkdGg9IjY2MCIgaGVpZ2h0PSI0MCIgcng9IjIwIiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9IjM2MCIgeT0iMzIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj7jgqTjg7Pjgr/jg7zjg43jg4Pjg4jvvIjlrp/pmpvjga7ntYzot6/vvIk8L3RleHQ+PGxpbmUgeDE9IjEyMCIgeTE9IjkwIiB4Mj0iMzMwIiB5Mj0iNjAiIGNsYXNzPSJzbSBkYXNoIi8+PGxpbmUgeDE9IjMzMCIgeTE9IjYwIiB4Mj0iNTYwIiB5Mj0iMTAwIiBjbGFzcz0ic20gZGFzaCIvPjxsaW5lIHgxPSIxMjAiIHkxPSI5MCIgeDI9IjIyMCIgeTI9IjIxMCIgY2xhc3M9InNtIGRhc2giLz48bGluZSB4MT0iMjIwIiB5MT0iMjEwIiB4Mj0iNDgwIiB5Mj0iMjIwIiBjbGFzcz0ic20gZGFzaCIvPjxsaW5lIHgxPSIzMzAiIHkxPSI2MCIgeDI9IjQ4MCIgeTI9IjIyMCIgY2xhc3M9InNtIGRhc2giLz48bGluZSB4MT0iNTYwIiB5MT0iMTAwIiB4Mj0iNDgwIiB5Mj0iMjIwIiBjbGFzcz0ic20gZGFzaCIvPjxyZWN0IHg9IjY0IiB5PSI2NiIgd2lkdGg9IjExMiIgaGVpZ2h0PSI0OCIgcng9IjYiIGNsYXNzPSJiZyBzIi8+PHRleHQgeD0iODAiIHk9IjgyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj5BPC90ZXh0PjxyZWN0IHg9IjkwIiB5PSI4OCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9Ijk4IiB5PSI5NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPjE8L3RleHQ+PHJlY3QgeD0iMTEwIiB5PSI4OCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjExOCIgeT0iOTciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj4yPC90ZXh0PjxyZWN0IHg9IjEzMCIgeT0iODgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIiIGNsYXNzPSJiZyBzbSIvPjxyZWN0IHg9IjE1MCIgeT0iODgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIiIGNsYXNzPSJiZyBzbSIvPjxsaW5lIHgxPSIxMjAiIHkxPSIxMTQiIHgyPSIxMjAiIHkyPSIyOTYiIGNsYXNzPSJzbSBkb3QiLz48cmVjdCB4PSIyNzQiIHk9IjM2IiB3aWR0aD0iMTEyIiBoZWlnaHQ9IjQ4IiByeD0iNiIgY2xhc3M9ImJnIHMiLz48dGV4dCB4PSIyOTAiIHk9IjUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj5CPC90ZXh0PjxyZWN0IHg9IjMwMCIgeT0iNTgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIiIGNsYXNzPSJiZyBzbSIvPjxyZWN0IHg9IjMyMCIgeT0iNTgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSIzMjgiIHk9IjY3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+MjwvdGV4dD48cmVjdCB4PSIzNDAiIHk9IjU4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iMzQ4IiB5PSI2NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPjM8L3RleHQ+PHJlY3QgeD0iMzYwIiB5PSI1OCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjM2OCIgeT0iNjciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj40PC90ZXh0PjxsaW5lIHgxPSIzMzAiIHkxPSI4NCIgeDI9IjMzMCIgeTI9IjI5NiIgY2xhc3M9InNtIGRvdCIvPjxyZWN0IHg9IjUwNCIgeT0iNzYiIHdpZHRoPSIxMTIiIGhlaWdodD0iNDgiIHJ4PSI2IiBjbGFzcz0iYmcgcyIvPjx0ZXh0IHg9IjUyMCIgeT0iOTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPkM8L3RleHQ+PHJlY3QgeD0iNTMwIiB5PSI5OCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjUzOCIgeT0iMTA3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+MTwvdGV4dD48cmVjdCB4PSI1NTAiIHk9Ijk4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBjbGFzcz0iYmcgc20iLz48cmVjdCB4PSI1NzAiIHk9Ijk4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBjbGFzcz0iYmcgc20iLz48cmVjdCB4PSI1OTAiIHk9Ijk4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iNTk4IiB5PSIxMDciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj40PC90ZXh0PjxsaW5lIHgxPSI1NjAiIHkxPSIxMjQiIHgyPSI1NjAiIHkyPSIyOTYiIGNsYXNzPSJzbSBkb3QiLz48cmVjdCB4PSIxNjQiIHk9IjE4NiIgd2lkdGg9IjExMiIgaGVpZ2h0PSI0OCIgcng9IjYiIGNsYXNzPSJiZyBzIi8+PHRleHQgeD0iMTgwIiB5PSIyMDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPkQ8L3RleHQ+PHJlY3QgeD0iMTkwIiB5PSIyMDgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIiIGNsYXNzPSJiZyBzbSIvPjxyZWN0IHg9IjIxMCIgeT0iMjA4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBjbGFzcz0iYmcgc20iLz48cmVjdCB4PSIyMzAiIHk9IjIwOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjIzOCIgeT0iMjE3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+MzwvdGV4dD48cmVjdCB4PSIyNTAiIHk9IjIwOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImJnIHNtIi8+PGxpbmUgeDE9IjIyMCIgeTE9IjIzNCIgeDI9IjIyMCIgeTI9IjI5NiIgY2xhc3M9InNtIGRvdCIvPjxyZWN0IHg9IjQyNCIgeT0iMTk2IiB3aWR0aD0iMTEyIiBoZWlnaHQ9IjQ4IiByeD0iNiIgY2xhc3M9ImJnIHMiLz48dGV4dCB4PSI0NDAiIHk9IjIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+RTwvdGV4dD48cmVjdCB4PSI0NTAiIHk9IjIxOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjQ1OCIgeT0iMjI3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+MTwvdGV4dD48cmVjdCB4PSI0NzAiIHk9IjIxOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjQ3OCIgeT0iMjI3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+MjwvdGV4dD48cmVjdCB4PSI0OTAiIHk9IjIxOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjQ5OCIgeT0iMjI3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+MzwvdGV4dD48cmVjdCB4PSI1MTAiIHk9IjIxOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgY2xhc3M9ImJnIHNtIi8+PGxpbmUgeDE9IjQ4MCIgeTE9IjI0NCIgeDI9IjQ4MCIgeTI9IjI5NiIgY2xhc3M9InNtIGRvdCIvPjxsaW5lIHgxPSIzMDAiIHkxPSI3NiIgeDI9IjE3NiIgeTI9Ijg0IiBjbGFzcz0ic2EiIG1hcmtlci1lbmQ9InVybCgjYWEpIi8+PHRleHQgeD0iMjMyIiB5PSI2NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYWNjIGIiPueJhyAzIOOCkua4oeOBmTwvdGV4dD48bGluZSB4MT0iNDI0IiB5MT0iMjEwIiB4Mj0iMjcwIiB5Mj0iMjEwIiBjbGFzcz0ic2EiIG1hcmtlci1lbmQ9InVybCgjYWEpIi8+PHRleHQgeD0iMzQ3IiB5PSIxOTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGFjYyBiIj7niYcgMeODuzIg44KS5rih44GZPC90ZXh0Pjx0ZXh0IHg9IjY0MCIgeT0iMTY4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPueCuee3mu+8muODlOOCouOBqeOBhuOBl+OBrjwvdGV4dD48dGV4dCB4PSI2NDAiIHk9IjE4NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7oq5bnkIbnmoTjgarjgaTjgarjgYzjgoo8L3RleHQ+PHRleHQgeD0iMzYwIiB5PSIzNzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPuODleOCoeOCpOODq+OCkuWwj+eJh+OBq+WIhuOBkeOAgeaMgeOBo+OBpuOBhOOCi+eJh+OCkuS6kuOBhOOBq+mFjeOCiuWQiOOBhuOAguWPguWKoOiAheOBjOWil+OBiOOCi+OBu+OBqemFjeOCi+WBtOOCguWil+OBiOOCizwvdGV4dD48dGV4dCB4PSIzNjAiIHk9IjM5MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jgqTjg7Pjgr/jg7zjg43jg4Pjg4jjga7kuIrjgavjgIHjgqLjg5fjg6rjgrHjg7zjgrfjg6fjg7Pjga7jgZ/jgoHjga7ntrLvvIjjgqrjg7zjg5Djg6zjgqTjg43jg4Pjg4jjg6/jg7zjgq/vvInjgpLnr4njgYTjgabjgYTjgos8L3RleHQ+PC9zdmc+Cg=="></div>
+      
+      
+      </div>
+        <div class="pageno">20</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.4　P2P</div>
+        <h2>ピアを見つけ、ファイルを探す</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">ピアを見つける</div>
+      <div class="card-b">最初に知っているピア（シード）から、数珠つなぎに他のピアを教えてもらう</div>
+    </div><div class="card">
+      <div class="card-h">探す</div>
+      <div class="card-b">検索の依頼をピアからピアへ回す。何段か回したら打ち切り、同じ依頼は捨てる</div>
+    </div><div class="card">
+      <div class="card-h">分散ハッシュ表</div>
+      <div class="card-b">誰が何を持っているかを、決まった規則で分担して覚える。BitTorrent などが使う</div>
+    </div></div>
+      <p class="note">検索の依頼で網がいっぱいにならないように、回し方のルールが要る。</p></div>
+        <div class="pageno">21</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.4　P2P</div>
+        <h2>P2P が使われているところ</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:25.42%"><col style="width:22.03%"><col style="width:52.54%"></colgroup><thead><tr><th>用途</th><th>例</th><th>ひとこと</th></tr></thead><tbody><tr><td>ファイルの配布</td><td>BitTorrent</td><td>大きなファイル（OS のイメージなど）を多くの人に配る</td></tr><tr><td>ビデオ通話・画面共有</td><td>WebRTC</td><td>ブラウザどうしが直接つながる（次の図）</td></tr><tr><td>暗号資産</td><td>ビットコイン</td><td>中央の機関なしに、取引の記録を皆で持つ（ブロックチェーン）</td></tr></tbody></table>
+      <p class="sub">P2P という技術そのものは中立である。かつては著作権を侵害するファイル共有ソフト（Winny など）が社会問題になった。<br>大学のネットワークでファイル共有ソフトを使う前には、規程を確認すること。</p></div>
+        <div class="pageno">22</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.4　WebRTC</div>
+        <h2>WebRTC：ブラウザどうしが直接つながる</h2>
+      </header><div class="body"><p class="lead">最初のつなぎ方の相談だけはサーバを使い、映像や音声はブラウザどうしが直接送り合う。サーバの負荷と遅延が減る。</p>
+      <div class="figwrap"><img class="fig" alt="図 05-02" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgMzgwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjM4MCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjM4MCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iMjAiIHk9IjE1MCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSI2MCIgcng9IjYiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI5NS4wIiB5PSIxODAuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jg5bjg6njgqbjgrYgQTwvdGV4dD48cmVjdCB4PSI1NTAiIHk9IjE1MCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSI2MCIgcng9IjYiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI2MjUuMCIgeT0iMTgwLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMgYiI+44OW44Op44Km44K2IEI8L3RleHQ+PHJlY3QgeD0iMjcwIiB5PSIyMCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI1MCIgcng9IjQiIGNsYXNzPSJiZyBzIi8+PHRleHQgeD0iMzYwLjAiIHk9IjM3LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPuOCt+OCsOODiuODquODs+OCsOOCteODvOODkDwvdGV4dD48dGV4dCB4PSIzNjAuMCIgeT0iNTMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+77yIV2ViIOOCteODvOODkO+8iTwvdGV4dD48cGF0aCBkPSJNOTUsMTUwIEM5NSw5MCAxODAsNDggMjY2LDQ1IiBjbGFzcz0ic20iIG1hcmtlci1lbmQ9InVybCgjYW0pIi8+PHBhdGggZD0iTTYyNSwxNTAgQzYyNSw5MCA1NDAsNDggNDU0LDQ1IiBjbGFzcz0ic20iIG1hcmtlci1lbmQ9InVybCgjYW0pIi8+PHRleHQgeD0iMTgwIiB5PSIxMDAiIHRleHQtYW5jaG9yPSJzdGFydCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7ikaAg44Gk44Gq44GO5pa544Gu5oOF5aCx44KSPC90ZXh0Pjx0ZXh0IHg9IjE4MCIgeT0iMTE2IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+5Lqk5o+b44GZ44KL77yISFRUUCDjgarjganvvIk8L3RleHQ+PHJlY3QgeD0iMjkwIiB5PSIyNzAiIHdpZHRoPSIxNDAiIGhlaWdodD0iNDQiIHJ4PSI0IiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9IjM2MC4wIiB5PSIyOTIuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+U1RVTiAvIFRVUk48L3RleHQ+PHRleHQgeD0iMzYwIiB5PSIzMzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+4pGhIOWkluOBi+OCieimi+OBiOOCi+OCouODieODrOOCueOCkuiqv+OBueOCizwvdGV4dD48dGV4dCB4PSIzNjAiIHk9IjM0NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7nm7TmjqXjgaTjgarjgYzjgonjgarjgYTjgajjgY3jga/kuK3ntpnjgZfjgabjgoLjgonjgYY8L3RleHQ+PGxpbmUgeDE9IjE3MCIgeTE9IjIwMCIgeDI9IjI5MCIgeTI9IjI4MCIgY2xhc3M9InNtIGRhc2giLz48bGluZSB4MT0iNTUwIiB5MT0iMjAwIiB4Mj0iNDMwIiB5Mj0iMjgwIiBjbGFzcz0ic20gZGFzaCIvPjxsaW5lIHgxPSIxNzQiIHkxPSIxNzIiIHgyPSI1NDYiIHkyPSIxNzIiIGNsYXNzPSJzYSIgbWFya2VyLWVuZD0idXJsKCNhYSkiLz48bGluZSB4MT0iNTQ2IiB5MT0iMTkwIiB4Mj0iMTc0IiB5Mj0iMTkwIiBjbGFzcz0ic2EiIG1hcmtlci1lbmQ9InVybCgjYWEpIi8+PHRleHQgeD0iMzYwIiB5PSIxNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGFjYyBiIj7ikaIg5pig5YOP44O76Z+z5aOw44O744OH44O844K/44KS55u05o6l6YCB44KK5ZCI44GGPC90ZXh0Pjx0ZXh0IHg9IjM2MCIgeT0iMjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuaal+WPt+WMluOBr+W/hemgiDwvdGV4dD48L3N2Zz4K"></div>
+      
+      
+      </div>
+        <div class="pageno">23</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">5.5</div>
+        <h1 class="sec-name">AI を支えるインフラ</h1>
+        <p class="sec-tag">巨大なモデルは、データセンターで動く</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.5　AI のインフラ</div>
+        <h2>学習と推論</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:22.03%"><col style="width:38.98%"><col style="width:38.98%"></colgroup><thead><tr><th></th><th>学習</th><th>推論</th></tr></thead><tbody><tr><td>何をするか</td><td>大量のデータで、モデルのパラメータを決める</td><td>できたモデルで、答えを作る</td></tr><tr><td>いつ</td><td>開発するときに一度（数週間〜数か月）</td><td>利用者が使うたびに毎回</td></tr><tr><td>計算機</td><td>数千〜数万の GPU を、速い網でつなぐ</td><td>GPU を並べたサーバ。利用者が多いほど多く要る</td></tr><tr><td>ネットワークの役割</td><td>GPU どうしが途中の結果を大量に交換する</td><td>利用者からの要求を API で受ける（第6回）</td></tr></tbody></table>
+      <div class="callout solid">クラウドの「使った分だけ払う」は AI でも同じ。LLM API はトークンの数で料金が決まる</div></div>
+        <div class="pageno">25</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">5.5　AI のインフラ</div>
+        <h2>AI のデータセンターが抱える問題</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">電力</div>
+      <div class="card-b">大規模な AI のデータセンターには、都市1つ分に近い電力を使う計画もある</div>
+    </div><div class="card">
+      <div class="card-h">冷却</div>
+      <div class="card-b">GPU の発熱を逃がすため、空気で冷やす方式から水で冷やす方式へ移りつつある</div>
+    </div><div class="card">
+      <div class="card-h">立地</div>
+      <div class="card-b">電力と冷却水が得られる場所に建てる。地域の資源の問題にもなる</div>
+    </div></div>
+      <p class="note">第6回では、このデータセンターで動く LLM を、ネットワーク越しにどう使うかを見る。</p></div>
+        <div class="pageno">26</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第5回</div>
+        <h2>演習</h2>
+      </header><div class="body"><ul class="ex">
+      <li><span class="ex-n">5-1</span><span class="ex-t">クラウドで「失敗のコストが下がった」とはどういうことか。オンプレミスと比べて説明せよ。</span></li>
+      <li><span class="ex-n">5-2</span><span class="ex-t">仮想機械とコンテナの違いを、カーネルと分離の強さの観点から説明せよ。</span></li>
+      <li><span class="ex-n">5-3</span><span class="ex-t">（手を動かす）docker run で nginx を起動し、docker logs に出た1行を読んで、何が記録されているかを説明せよ。</span></li>
+      <li><span class="ex-n">5-4</span><span class="ex-t">P2P が「規模の急拡大に強い」理由と、「データの一元的な管理が苦手」な理由をそれぞれ説明せよ。</span></li></ul></div>
+        <div class="pageno">27</div>
+      </section>
+<section class="slide dark ">
+      <div class="sum-wrap">
+        <h1 class="sum-t">まとめ</h1>
+        <ul class="sum">
+      <li><span class="s-h">クラウド</span><span class="s-b">必要なときに借り、要らなくなれば返す。失敗のコストが下がった。責任は事業者と分け合う</span></li>
+      <li><span class="s-h">仮想化</span><span class="s-b">計算機そのものを抽象化する。仮想機械は OS ごと、コンテナはプロセスの見え方だけを分ける</span></li>
+      <li><span class="s-h">Docker</span><span class="s-b">イメージから、同じ環境をどこでも立てられる。ポートの対応で外とつなぐ</span></li>
+      <li><span class="s-h">P2P</span><span class="s-b">参加者どうしが配り合う。規模と障害に強いが、管理と一元化は苦手</span></li>
+      <li><span class="s-h">AI のインフラ</span><span class="s-b">学習は GPU を大量につなぎ、推論は API で毎回動く。電力と冷却が課題</span></li></ul>
+        <p class="next"><b>次回</b>　第6回　LLM のしくみと API</p>
+      </div></section>
+</div>
+<div id="hud"><span id="cur">1</span> / <span id="total">28</span></div>
+<div id="help" hidden>
+  <h3>操作</h3>
+  <table>
+    <tr><td>→ ↓ Space PageDown</td><td>次へ</td></tr>
+    <tr><td>← ↑ PageUp</td><td>前へ</td></tr>
+    <tr><td>Home / End</td><td>最初 / 最後</td></tr>
+    <tr><td>数字 + Enter</td><td>その番号へ</td></tr>
+    <tr><td>O</td><td>一覧表示</td></tr>
+    <tr><td>F</td><td>全画面</td></tr>
+    <tr><td>C</td><td>組版チェック（溢れの検出）</td></tr>
+    <tr><td>P</td><td>印刷（PDF 保存）</td></tr>
+    <tr><td>?</td><td>この画面</td></tr>
+  </table>
+  <p>印刷は1枚1ページで出る。PDF にすれば pptx を配るのと同じことができる。</p>
+</div>
+<script>
+
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var cur=0, buf='';
+  var hud=document.getElementById('cur'), help=document.getElementById('help');
+
+  // 板を画面に合わせて拡大縮小する
+  function fit(){
+    var s=Math.min(innerWidth/1280, innerHeight/720);
+    document.documentElement.style.setProperty('--s', s);
+    var ow=(310)/1280;
+    slides.forEach(function(el){ el.style.setProperty('--os', ow); });
+    if(document.body.classList.contains('overview')) layoutOverview();
+  }
+  function layoutOverview(){
+    // 一覧では実寸の板を縮めて置くので、親に実際の見かけの大きさを持たせる
+    var cell=deck.clientWidth/Math.max(1,Math.floor(deck.clientWidth/330));
+    var s=(cell-8)/1280;
+    slides.forEach(function(el){
+      el.style.setProperty('--os', s);
+      el.style.marginBottom=(720*s-720)+'px';
+      el.style.marginRight=(1280*s-1280)+'px';
+    });
+  }
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(el,j){ el.classList.toggle('on', j===cur); });
+    hud.textContent=cur+1;
+    if(location.hash!=='#'+(cur+1)) history.replaceState(null,'','#'+(cur+1));
+  }
+  function overview(on){
+    document.body.classList.toggle('overview', on);
+    if(on){ slides.forEach(function(el){ el.classList.add('on'); }); layoutOverview();
+            slides[cur].scrollIntoView({block:'center'}); }
+    else { slides.forEach(function(el){ el.style.margin=''; }); fit(); show(cur); }
+  }
+
+  // 組版チェック。実際に描いた結果を測るので、見積もりではなく事実が分かる。
+  // pptx では PowerPoint に描かせるまで分からなかった部分である。
+  function check(){
+    var bad=[];
+    slides.forEach(function(el,i){
+      var was=el.classList.contains('on');
+      el.classList.add('on');
+      var over=false;
+      [].slice.call(el.querySelectorAll('*')).forEach(function(n){
+        var r=n.getBoundingClientRect(), e=el.getBoundingClientRect();
+        if(r.height&&(r.bottom>e.bottom+1||r.right>e.right+1)) over=true;
+      });
+      if(el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1) over=true;
+      el.classList.toggle('overflow', over);
+      if(over) bad.push(i+1);
+      if(!was) el.classList.remove('on');
+    });
+    document.body.classList.add('check');
+    slides[cur].classList.add('on');
+    console.log(bad.length? '組版あふれ: '+bad.length+'枚 → '+bad.join(', ') : '組版あふれなし');
+    return bad;
+  }
+
+  addEventListener('resize', fit);
+  addEventListener('hashchange', function(){
+    var n=parseInt(location.hash.slice(1),10); if(n) show(n-1);
+  });
+  addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k>='0'&&k<='9'){ buf+=k; return; }
+    if(k==='Enter'){ if(buf){ show(parseInt(buf,10)-1); buf=''; } return; }
+    buf='';
+    switch(k){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); show(cur+1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); show(cur-1); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length-1); break;
+      case 'o': case 'O': overview(!document.body.classList.contains('overview')); break;
+      case 'f': case 'F':
+        if(document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen(); break;
+      case 'c': case 'C':
+        if(document.body.classList.contains('check')){
+          document.body.classList.remove('check');
+          slides.forEach(function(el){ el.classList.remove('overflow'); });
+        } else check();
+        break;
+      case 'p': case 'P': print(); break;
+      case '?': help.hidden=!help.hidden; break;
+      case 'Escape': help.hidden=true; if(document.body.classList.contains('overview')) overview(false); break;
+    }
+  });
+  deck.addEventListener('click', function(e){
+    var el=e.target.closest('.slide'); if(!el) return;
+    if(document.body.classList.contains('overview')){
+      show(slides.indexOf(el)); overview(false);
+    } else show(cur+1);
+  });
+
+  fit();
+  var n=parseInt(location.hash.slice(1),10);
+  show(n? n-1 : 0);
+  window.__check=check;
+})();
+</script>
+</body>
+</html>

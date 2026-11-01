@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="420" class="bg"/><rect x="65.0" y="20" width="170" height="36" rx="4" class="tint s"/><text x="150.0" y="38.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">ブラウザ</text><line x1="150" y1="56" x2="150" y2="330" class="sm dash"/><rect x="435.0" y="20" width="170" height="36" rx="4" class="tint s"/><text x="520.0" y="38.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">Web サーバ</text><line x1="520" y1="56" x2="520" y2="330" class="sm dash"/><line x1="154" y1="90" x2="516" y2="90" class="s" marker-end="url(#a)"/><text x="335.0" y="81" text-anchor="middle" dominant-baseline="middle" class="t-xs">① 使える暗号方式 ＋ 鍵交換の材料</text><line x1="516" y1="136" x2="154" y2="136" class="s" marker-end="url(#a)"/><text x="335.0" y="127" text-anchor="middle" dominant-baseline="middle" class="t-xs">② 鍵交換の材料 ＋ 証明書 ＋ 署名</text><rect x="20" y="160" width="260" height="92" rx="6" class="accT s"/><text x="150" y="178" text-anchor="middle" dominant-baseline="middle" class="t-xs b acc">③ 証明書を検証する</text><text x="34" y="198" text-anchor="start" dominant-baseline="middle" class="t-xs">名前がアクセス先と一致するか</text><text x="34" y="215" text-anchor="start" dominant-baseline="middle" class="t-xs">期限内か・失効していないか</text><text x="34" y="232" text-anchor="start" dominant-baseline="middle" class="t-xs">信頼できる認証局までたどれるか</text><rect x="370" y="176" width="300" height="52" rx="6" class="bg s"/><text x="520" y="194" text-anchor="middle" dominant-baseline="middle" class="t-xs b">④ 両者が同じ共通鍵を計算する</text><text x="520" y="213" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">鍵そのものは通信路を流れない</text><line x1="280" y1="202" x2="366" y2="202" class="sm dot"/><rect x="158" y="272" width="354" height="44" rx="10" class="none sa dash"/><line x1="166" y1="286" x2="508" y2="286" class="s" marker-end="url(#a)"/><line x1="508" y1="302" x2="166" y2="302" class="s" marker-end="url(#a)"/><text x="335" y="262" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">⑤ 以降の HTTP は共通鍵で暗号化（速い）</text><text x="360" y="362" text-anchor="middle" dominant-baseline="middle" class="t-s b">公開鍵の仕組みで「相手の確認」と「鍵の共有」を行い、データは共通鍵で流す</text><text x="360" y="388" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">証明書の警告を無視して進むと、③ を飛ばすことになる（中間者攻撃を許す）</text></svg>

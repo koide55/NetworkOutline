@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第1回 インターネットとアプリケーション層｜通信工学通論</title>
+<style>
+
+:root{
+  --ink:#16191D; --paper:#FFFFFF; --tint:#EEF1F5; --tint2:#DDE4EC;
+  --acc:#0B5CAD; --accT:#D9E6F4; --mut:#5F6672; --dim:#9AA3B0;
+  --lightInk:#E8EBEF; --accLight:#6AB0F3; --code:#F5F7FA; --ghost:#2E3A4A;
+  --ja:"Yu Gothic Medium", "Yu Gothic", YuGothic, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; --mono:"SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0d10;font-family:var(--ja);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* 1280x720 の板を作り、画面の大きさに合わせて拡大縮小する。
+   どの画面でも同じ見た目になる —— スライドである以上これが要る。 */
+#deck{position:absolute;inset:0}
+.slide{
+  position:absolute;top:50%;left:50%;
+  width:1280px;height:720px;
+  transform:translate(-50%,-50%) scale(var(--s,1));
+  transform-origin:center center;
+  overflow:hidden;display:none;
+}
+.slide.on{display:block}
+.slide.light{background:var(--paper);color:var(--ink)}
+.slide.dark{background:var(--ink);color:var(--paper)}
+
+/* --- 明色スライドの骨格 --- */
+.slide.light header{position:absolute;top:33px;left:60px;right:60px}
+.kicker{font-size:16px;font-weight:700;color:var(--acc);letter-spacing:.02em}
+.slide.light h2{font-size:40px;font-weight:700;line-height:1.25;margin-top:6px}
+/* 内容の塊ごと、見出しと下端のあいだで縦に中央へ寄せる。
+   pptx では noteY を1枚ずつ手で詰めて注記を内容の直下に置いていた。
+   CSS は高さを知っているので、その手当てが要らない。 */
+.slide.light .body{position:absolute;top:130px;left:72px;right:72px;bottom:56px;
+  display:flex;flex-direction:column;gap:14px;justify-content:center}
+.pageno{position:absolute;right:60px;bottom:22px;font-size:13px;color:var(--mut)}
+
+.lead{font-size:20px;line-height:1.55;color:var(--ink)}
+.sub{font-size:17px;line-height:1.6;color:var(--mut)}
+.sub.center,.caption{text-align:center}
+.caption{font-size:20px;line-height:1.5;color:var(--ink)}
+.note{font-size:17px;line-height:1.5;font-weight:700;color:var(--acc);margin-top:8px}
+
+/* --- 意匠：マス目 --- */
+.motif{position:absolute;left:58px;bottom:56px;display:flex;gap:4px}
+.motif i{width:28px;height:19px;border:1px solid rgba(106,176,243,.45);border-radius:2px}
+.motif i.on{background:var(--accLight);border-color:var(--accLight)}
+.slide.title .motif{bottom:128px}
+
+/* --- 表紙 --- */
+.title-wrap{position:absolute;left:86px;top:188px;right:86px}
+.course{font-size:23px;color:var(--dim);letter-spacing:.12em}
+.slide.title h1{font-weight:700;line-height:1.2;margin-top:24px;color:var(--paper)}
+.tq{font-size:24px;line-height:1.5;color:var(--accLight);margin-top:28px}
+.affil{position:absolute;left:86px;bottom:22px;font-size:16px;color:var(--dim)}
+
+/* --- 今回の問い --- */
+.q-wrap{position:absolute;left:86px;right:86px;top:144px}
+.q-label{font-size:19px;font-weight:700;color:var(--accLight)}
+.q-big{font-size:48px;font-weight:700;line-height:1.35;margin-top:22px;color:var(--paper)}
+.q-sub{font-size:27px;color:var(--lightInk);margin-top:22px}
+.q-foot{font-size:19px;color:var(--dim);margin-top:40px}
+
+/* --- 節の区切り --- */
+.sec-wrap{position:absolute;left:86px;right:86px;top:230px}
+.sec-n{font-size:75px;font-weight:700;color:var(--ghost);line-height:1}
+.sec-name{font-size:51px;font-weight:700;color:var(--paper);margin-top:10px;line-height:1.2}
+.sec-tag{font-size:23px;color:var(--dim);margin-top:18px}
+
+/* --- 到達目標 --- */
+.goals{list-style:none;display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.goals li{display:flex;align-items:center;gap:18px}
+.goals .num{flex:none;width:48px;height:48px;border-radius:50%;
+  background:var(--accT);border:1.5px solid var(--acc);color:var(--acc);
+  font-size:19px;font-weight:700;display:grid;place-items:center}
+.g-h{font-size:21px;font-weight:700;color:var(--ink)}
+.g-b{font-size:19px;color:var(--mut);margin-left:12px}
+
+/* --- カード --- */
+.cards{display:grid;grid-template-columns:repeat(var(--per),1fr);gap:16px;align-content:start}
+.card{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:16px 18px}
+.card.acc{background:var(--accT);border-color:var(--acc)}
+.card-h{font-size:19px;font-weight:700;color:var(--ink)}
+.card.acc .card-h{color:var(--acc)}
+.card-b{font-size:16px;line-height:1.55;color:var(--mut);margin-top:8px}
+
+/* --- 囲み --- */
+.callout{border-radius:8px;padding:14px 20px}
+.callout.dashed{border:1.5px dashed var(--acc);background:var(--paper)}
+.callout.solid{border:1.5px solid var(--acc);background:var(--accT);
+  font-size:20px;font-weight:700;color:var(--acc);line-height:1.45}
+.callout.big{font-size:23px}
+.co-h{font-size:20px;font-weight:700;color:var(--acc)}
+.co-b{font-size:16px;line-height:1.5;color:var(--mut);margin-top:6px}
+
+/* --- 箇条書き --- */
+.bullets{list-style:none;display:flex;flex-direction:column;gap:10px}
+.bullets li{position:relative;padding-left:22px;font-size:21px;line-height:1.5;color:var(--ink)}
+.bullets li::before{content:"";position:absolute;left:4px;top:.62em;
+  width:7px;height:7px;border-radius:50%;background:var(--acc)}
+.bullets li.lv1{font-size:18px;color:var(--mut);padding-left:44px}
+.bullets li.lv1::before{left:26px;width:5px;height:5px;background:var(--mut)}
+.bullets.tight li{font-size:18px;gap:6px}
+
+/* --- コード --- */
+.code{background:var(--code);border:1px solid var(--tint2);border-radius:6px;
+  padding:16px 20px;font-family:var(--mono);font-size:17px;line-height:1.7;
+  color:var(--ink);white-space:pre;overflow:hidden}
+.code.small{font-size:15.5px}
+.code-split{display:grid;grid-template-columns:1fr .92fr;gap:22px;align-items:start}
+.side-h{font-size:19px;font-weight:700;color:var(--ink)}
+.side-b{font-size:17px;line-height:1.6;color:var(--mut);margin-top:8px}
+
+/* --- 表 --- */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.tbl th,.tbl td{border:1px solid var(--tint2);padding:7px 11px;font-size:17px;
+  line-height:1.4;text-align:left;vertical-align:middle;word-break:break-word}
+.tbl th{background:var(--tint);font-weight:700}
+.tbl.mono{font-family:var(--mono);font-size:16px}
+.tbl.mono th{font-family:var(--ja)}
+.tbl.center th,.tbl.center td{text-align:center}
+
+/* --- 左右2段 --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.col{display:flex;flex-direction:column;gap:11px}
+.col-h{font-size:20px;font-weight:700;color:var(--ink)}
+.col-b{font-size:17px;line-height:1.65;color:var(--mut)}
+.col-n{font-size:17px;font-weight:700;color:var(--acc)}
+
+/* --- 主張と対応 --- */
+.map{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.map li{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:8px}
+.m-a{font-size:20px;color:var(--ink);text-align:right}
+.m-arrow{height:3px;background:var(--acc);position:relative;border-radius:2px}
+.m-arrow::after{content:"";position:absolute;right:-1px;top:-5px;
+  border:7px solid transparent;border-left-color:var(--acc);border-right:0}
+.m-b{font-size:21px;font-weight:700;color:var(--acc)}
+
+/* --- 手順 --- */
+.steps{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:10px;align-items:stretch}
+.step{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:12px 12px 14px}
+.step.first{background:var(--accT);border-color:var(--acc)}
+.st-n{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--acc)}
+.st-h{font-size:17px;font-weight:700;color:var(--ink);margin-top:6px;line-height:1.3}
+.st-b{font-size:15px;color:var(--mut);margin-top:6px;line-height:1.45}
+
+/* --- 図 --- */
+/* 図は枠いっぱいまで伸ばす。SVG なので拡大しても粗くならない。
+   pptx 版も箱に合わせて拡大していたので、そこは同じ振る舞いにしてある。 */
+.figwrap{flex:1;min-height:0;display:flex}
+.fig{width:100%;height:100%;object-fit:contain}
+.fig-missing{color:#b00;font-size:20px;text-align:center;padding:40px}
+
+/* --- 演習 --- */
+.ex{list-style:none;display:flex;flex-direction:column;gap:16px}
+.ex li{display:flex;gap:18px;align-items:flex-start}
+.ex-n{flex:none;width:74px;padding:5px 0;text-align:center;border-radius:7px;
+  background:var(--accT);border:1px solid var(--acc);color:var(--acc);
+  font-family:var(--mono);font-size:17px;font-weight:700}
+.ex-t{font-size:19px;line-height:1.55;color:var(--ink);padding-top:3px}
+
+/* --- まとめ --- */
+.sum-wrap{position:absolute;left:86px;right:86px;top:74px;bottom:74px;
+  display:flex;flex-direction:column}
+.sum-t{font-size:40px;font-weight:700;color:var(--paper)}
+.sum{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:26px}
+.sum li{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:baseline}
+.s-h{font-size:20px;font-weight:700;color:var(--accLight)}
+.s-b{font-size:18px;line-height:1.5;color:var(--lightInk)}
+.next{font-size:17px;color:var(--dim);margin-top:auto;line-height:1.5}
+.next b{color:var(--accLight)}
+
+/* --- 画面まわり --- */
+#hud{position:fixed;left:16px;bottom:12px;font-size:13px;color:#7c8694;
+  font-family:var(--mono);z-index:20;user-select:none}
+#help{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);
+  background:#fff;color:var(--ink);border-radius:12px;padding:26px 30px;z-index:30;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);font-size:15px;max-width:520px}
+#help h3{font-size:19px;margin-bottom:14px}
+#help table{border-collapse:collapse;width:100%}
+#help td{padding:5px 10px 5px 0;vertical-align:top}
+#help td:first-child{font-family:var(--mono);color:var(--acc);white-space:nowrap}
+#help p{margin-top:14px;color:var(--mut);font-size:13.5px;line-height:1.6}
+
+/* --- 一覧表示 --- */
+body.overview{overflow:auto}
+body.overview #deck{position:static;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;padding:22px}
+body.overview .slide{position:relative;top:auto;left:auto;display:block;
+  transform:scale(var(--os));transform-origin:top left;
+  width:1280px;height:720px;cursor:pointer;
+  outline:2px solid #2a3340;border-radius:2px}
+body.overview .slide.on{outline:3px solid var(--accLight)}
+body.overview .sl-wrap{overflow:hidden}
+
+/* --- 組版チェック：実際に溢れた箇所だけを赤で示す --- */
+body.check .slide.overflow{outline:4px solid #e0453a;outline-offset:-4px}
+body.check .slide.overflow::after{content:"組版あふれ";position:absolute;
+  right:0;top:0;background:#e0453a;color:#fff;font-size:13px;padding:3px 9px;
+  font-weight:700;z-index:9}
+
+/* --- 印刷：1枚1ページ。PDF にすれば配布できる --- */
+@page{size:1280px 720px;margin:0}
+@media print{
+  html,body{overflow:visible;background:#fff;height:auto}
+  #hud,#help{display:none!important}
+  #deck{position:static}
+  .slide{position:relative!important;display:block!important;top:auto;left:auto;
+    transform:none!important;page-break-after:always;break-after:page;
+    width:1280px;height:720px}
+  .slide:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="deck">
+<section class="slide dark title">
+      <div class="title-wrap">
+        <div class="course">通信工学通論</div>
+        <h1 style="font-size:45px">第1回　インターネットとアプリケーション層</h1>
+        <p class="tq">普段使っているアプリは、ネットワークの上で何をやりとりしているのか。</p>
+      </div>
+      <div class="affil">九州大学</div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">ガイダンス</div>
+        <h2>担当教員</h2>
+      </header><div class="body"><p class="lead">小出 洋（こいで ひろし）　情報基盤研究開発センター　情報システムセキュリティ研究部門</p>
+      <div class="cards" style="--per:3"><div class="card acc">
+      <div class="card-h">研究</div>
+      <div class="card-b">サイバーセキュリティ。Moving Target Defense、攻撃検知と防御、自律型のサイバー防御エージェント</div>
+    </div><div class="card">
+      <div class="card-h">CTF</div>
+      <div class="card-b">学生とチームを組んで参加している</div>
+    </div><div class="card">
+      <div class="card-h">教育</div>
+      <div class="card-b">九州大学で9年目。学生の指導歴は24年になる</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">攻撃者の次の一手を、先に読む</div>
+        <div class="co-b">インターネット、Web サービス、AI —— 身近なシステムが攻撃を受けたときに、どうすれば被害を小さくできるのか。</div>
+      </div><p class="note">8回のうち重きを置いているのは第6・7回（LLM と AIエージェント）と第8回（セキュリティ）。他の回も、そこにつながるように並べてある。</p></div>
+        <div class="pageno">2</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">ガイダンス</div>
+        <h2>この講義の全8回</h2>
+      </header><div class="body"><p class="lead">TCP/IP のアプリケーション層を扱う。下の層（トランスポート層以下）は、この講義では中身を見ない。</p>
+      <table class="tbl  "><colgroup><col style="width:11.02%"><col style="width:36.44%"><col style="width:52.54%"></colgroup><thead><tr><th>回</th><th>テーマ</th><th>今回の問い</th></tr></thead><tbody><tr><td>第1回</td><td>インターネットとアプリケーション層</td><td>アプリはネットワークの上で何をやりとりしているのか</td></tr><tr><td>第2回</td><td>DNS と電子メール</td><td>名前しか知らない相手に、どう届けるのか</td></tr><tr><td>第3回</td><td>WWW と HTTP</td><td>ページが表示されるまでに何が起きているのか</td></tr><tr><td>第4回</td><td>Web アプリケーションと Web API</td><td>状態を持たない HTTP の上で、ログインはどう作るのか</td></tr><tr><td>第5回</td><td>クラウド・仮想化・P2P</td><td>アプリはどこで動いているのか</td></tr><tr><td>第6回</td><td>LLM のしくみと API</td><td>LLM は何をしていて、どう使われているのか</td></tr><tr><td>第7回</td><td>AIエージェントと MCP</td><td>AIエージェントはネットワークの上で何をしているのか</td></tr><tr><td>第8回</td><td>セキュリティ</td><td>顔の見えない相手を、どう信用するのか</td></tr></tbody></table>
+      </div>
+        <div class="pageno">3</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">ガイダンス</div>
+        <h2>この講義の進め方</h2>
+      </header><div class="body"><p class="lead">90分 × 全8回。各回はこの型で進む。</p>
+      <div class="cards" style="--per:3"><div class="card acc">
+      <div class="card-h">冒頭</div>
+      <div class="card-b">今回の問い —— この90分で答えを出す1つの問い</div>
+    </div><div class="card">
+      <div class="card-h">本体</div>
+      <div class="card-b">3〜5ブロック。図と、実際に流れるメッセージを見る</div>
+    </div><div class="card">
+      <div class="card-h">手を動かす</div>
+      <div class="card-b">実習かデモを毎回入れる。自分の PC で通信を観察する</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">アプリケーション層のプロトコルの多くは、人が読める文字で書かれている</div>
+        <div class="co-b">だから、実際に流れているものを自分の目で見られる。見て確かめることを毎回の基本にする。</div>
+      </div><p class="note">演習の解答は、ポートフォリオと一緒に Moodle で提出してもらう。</p></div>
+        <div class="pageno">4</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">ガイダンス</div>
+        <h2>提出物・成績評価・出席</h2>
+      </header><div class="body"><p class="lead">提出はすべて Moodle で行う。</p>
+      <table class="tbl  "><colgroup><col style="width:25.42%"><col style="width:74.58%"></colgroup><thead><tr><th></th><th>内容</th></tr></thead><tbody><tr><td>毎回の提出物</td><td>ポートフォリオ と 演習問題の解答</td></tr><tr><td>提出先</td><td>Moodle</td></tr><tr><td>締切</td><td>出題から1週間以内</td></tr><tr><td>成績評価</td><td>毎回の提出物で付ける</td></tr><tr><td>出席</td><td>提出をもって出席とする</td></tr><tr><td>連絡・質問</td><td>Moodle で受け付ける</td></tr></tbody></table>
+      <div class="callout solid">毎回出すこと。それが成績であり、出席でもある</div><p class="sub">教科書・参考書は指定しない。講義資料と演習で完結する。</p></div>
+        <div class="pageno">5</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">ガイダンス</div>
+        <h2>ポートフォリオに何を書くか</h2>
+      </header><div class="body"><p class="lead">毎回、次の2点を書いて Moodle に出す。演習問題の解答と一緒に提出する。</p>
+      <div class="cards" style="--per:2"><div class="card acc">
+      <div class="card-h">1. 今回の問いに、自分の言葉で答える</div>
+      <div class="card-b">各回の冒頭に「今回の問い」が1つ示される。講義の言い回しをなぞるのではなく、自分の言葉に置き換えて書く</div>
+    </div><div class="card">
+      <div class="card-h">2. 分からなかったこと</div>
+      <div class="card-b">「分からなかった」と書いて減点することはない。どこで詰まったかが分かるほうが、次の回の組み立てに活きる</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">8回ぶんが、そのまま自分の学びの記録になる</div>
+        <div class="co-b">8回の答えを並べると、インターネットの構成から AIエージェントとセキュリティまでが一本の線でつながる。最終回に見返してもらう。</div>
+      </div><p class="note">分量は200文字以上。</p></div>
+        <div class="pageno">6</div>
+      </section>
+<section class="slide dark ">
+      <div class="q-wrap">
+        <div class="q-label">今回の問い</div>
+        <p class="q-big">普段使っているアプリは、<br>ネットワークの上で何をやりとりしているのか。</p>
+        <p class="q-sub">ブラウザも、メールも、生成AIも、同じ仕組みの上で動いている。</p>
+        <p class="q-foot">この90分で、この問いに答えを出す。</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第1回</div>
+        <h2>到達目標</h2>
+      </header><div class="body"><ol class="goals">
+      <li><span class="num">1</span>
+        <span class="g-h">インターネットの構成</span><span class="g-b">を「網の網」として説明できる</span></li>
+      <li><span class="num">2</span>
+        <span class="g-h">TCP/IP の階層モデル</span><span class="g-b">の中で、アプリケーション層が受け持つ範囲を説明できる</span></li>
+      <li><span class="num">3</span>
+        <span class="g-h">プロトコル</span><span class="g-b">が何を決めているかを説明できる</span></li>
+      <li><span class="num">4</span>
+        <span class="g-h">IP アドレスとポート番号</span><span class="g-b">の役割の違いを説明できる</span></li></ol></div>
+        <div class="pageno">8</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">1.1</div>
+        <h1 class="sec-name">インターネットで何ができるか</h1>
+        <p class="sec-tag">すでに生活のあらゆるところにある</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.1　いま</div>
+        <h2>いまのインターネットでできること</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">生成AI</div>
+      <div class="card-b">ChatGPT、Claude、Gemini に質問し、文章やコードを作らせる</div>
+    </div><div class="card">
+      <div class="card-h">動画と音楽の配信</div>
+      <div class="card-b">YouTube、Netflix、Spotify。通信量の大きな部分を動画が占める</div>
+    </div><div class="card">
+      <div class="card-h">SNS とメッセージ</div>
+      <div class="card-b">LINE、X、Instagram。写真や短い動画を共有する</div>
+    </div><div class="card">
+      <div class="card-h">決済と買い物</div>
+      <div class="card-b">キャッシュレス決済、ネット通販、チケットの予約</div>
+    </div><div class="card">
+      <div class="card-h">学習と仕事</div>
+      <div class="card-b">Moodle、オンライン会議、クラウド上の文書の共同編集</div>
+    </div><div class="card">
+      <div class="card-h">モノのインターネット</div>
+      <div class="card-b">家電、自動車、センサがつながり、データを送る</div>
+    </div></div>
+      <p class="note">どれも「アプリケーション」である。この講義は、これらがネットワークの上で何をやりとりしているかを扱う。</p></div>
+        <div class="pageno">10</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.1　いま</div>
+        <h2>「答える」AI から「動く」AI へ</h2>
+      </header><div class="body"><p class="lead">生成AI は、人の質問に答えるだけの道具から、ネットワーク上のサービスを使って自分で仕事を進める存在に変わりつつある。</p>
+      <div class="callout solid big">AI も、この講義で学ぶプロトコルをそのまま使って動いている</div>
+      <ul class="map">
+      <li><span class="m-a">メールを読んで仕分ける</span><span class="m-arrow"></span>
+        <span class="m-b">電子メール（第2回）</span></li>
+      <li><span class="m-a">Web ページや API を呼ぶ</span><span class="m-arrow"></span>
+        <span class="m-b">HTTP と JSON（第3・4回）</span></li>
+      <li><span class="m-a">予定をカレンダーに登録する</span><span class="m-arrow"></span>
+        <span class="m-b">Web API と OAuth（第4回）</span></li></ul>
+      <p class="sub">第6・7回では、LLM と AIエージェントが何をどうやりとりしているかを、ここまでの知識で読み解く。</p></div>
+        <div class="pageno">11</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.1　考えてみよう</div>
+        <h2>考えてみよう（3分）</h2>
+      </header><div class="body"><p class="lead">今日、起きてから使ったネットワークのサービスを書き出してみる。</p><ul class="bullets"><li class="lv0">使ったサービスを5つ挙げる</li><li class="lv1">例：天気予報のアプリ、LINE、Moodle、動画、検索</li><li class="lv0">それぞれ、相手の計算機はどこにあると思うか</li><li class="lv1">自分のスマートフォンの中か、大学の中か、どこかのデータセンターか</li><li class="lv0">通信が止まったら、どのサービスが使えなくなるか</li></ul><p class="note">ほとんどのサービスは、手元ではなく遠くの計算機で動いている。それを可能にしているのがインターネットである。</p></div>
+        <div class="pageno">12</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">1.2</div>
+        <h1 class="sec-name">インターネットの構成</h1>
+        <p class="sec-tag">中央の管理者がいない「網の網」</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.2　構成</div>
+        <h2>インターネットは「網の網」</h2>
+      </header><div class="body"><p class="lead">インターネットは単一の巨大なネットワークではない。独立に運営される多数のネットワークが、互いにつながったものである。</p>
+      <div class="figwrap"><img class="fig" alt="図 01-02" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgNDAwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwMCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwMCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iMTcwIiB5PSIyMCIgd2lkdGg9IjM4MCIgaGVpZ2h0PSI1MCIgcng9IjI1IiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9IjM2MCIgeT0iNDUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMgYiI+5aSn5omL44Gu6YCa5L+h5LqL5qWt6ICF77yI5LqS44GE44Gr55u05o6l44Gk44Gq44GM44KL77yJPC90ZXh0PjxyZWN0IHg9IjkwIiB5PSIxNDAiIHdpZHRoPSIxNTAiIGhlaWdodD0iNTAiIHJ4PSI2IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMTY1LjAiIHk9IjE2NS4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIGIiPklTUCBBPC90ZXh0PjxyZWN0IHg9IjQ4MCIgeT0iMTQwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjUwIiByeD0iNiIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjU1NS4wIiB5PSIxNjUuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj5JU1AgQjwvdGV4dD48cmVjdCB4PSIyOTUiIHk9IjE0MCIgd2lkdGg9IjEzMCIgaGVpZ2h0PSI1MCIgcng9IjYiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSIzNjAuMCIgeT0iMTU3LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGIiPklYPC90ZXh0Pjx0ZXh0IHg9IjM2MC4wIiB5PSIxNzMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgYiI+77yI55u45LqS5o6l57aa54K577yJPC90ZXh0PjxsaW5lIHgxPSIyNDAiIHkxPSIxNjUiIHgyPSIyOTUiIHkyPSIxNjUiIGNsYXNzPSJzIi8+PGxpbmUgeDE9IjQyNSIgeTE9IjE2NSIgeDI9IjQ4MCIgeTI9IjE2NSIgY2xhc3M9InMiLz48bGluZSB4MT0iMTY1IiB5MT0iMTQwIiB4Mj0iMjUwIiB5Mj0iNzAiIGNsYXNzPSJzIi8+PGxpbmUgeDE9IjU1NSIgeTE9IjE0MCIgeDI9IjQ3MCIgeTI9IjcwIiBjbGFzcz0icyIvPjx0ZXh0IHg9IjE3NiIgeT0iOTIiIHRleHQtYW5jaG9yPSJlbmQiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+6LK755So44KS5omV44Gj44GmPC90ZXh0Pjx0ZXh0IHg9IjE3NiIgeT0iMTA4IiB0ZXh0LWFuY2hvcj0iZW5kIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuOBpOOBquOBhOOBp+OCguOCieOBhjwvdGV4dD48dGV4dCB4PSIzNjAiIHk9IjIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7lr77nrYnjgarkuovmpa3ogIXjganjgYbjgZfjga8gSVgg44Gn55u05o6l5Lqk5o+b44GZ44KLPC90ZXh0PjxyZWN0IHg9IjIwIiB5PSIyNzAiIHdpZHRoPSIxMzAiIGhlaWdodD0iNDYiIHJ4PSI0IiBjbGFzcz0iYmcgcyIvPjx0ZXh0IHg9Ijg1LjAiIHk9IjI5My4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+5a625bqtPC90ZXh0PjxsaW5lIHgxPSI4NSIgeTE9IjI3MCIgeDI9IjE2NSIgeTI9IjE5MCIgY2xhc3M9InNtIi8+PHJlY3QgeD0iMTgwIiB5PSIyNzAiIHdpZHRoPSIxMzAiIGhlaWdodD0iNDYiIHJ4PSI0IiBjbGFzcz0iYmcgcyIvPjx0ZXh0IHg9IjI0NS4wIiB5PSIyOTMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuWkp+WtpuOBriBMQU48L3RleHQ+PGxpbmUgeDE9IjI0NSIgeTE9IjI3MCIgeDI9IjE2NSIgeTI9IjE5MCIgY2xhc3M9InNtIi8+PHJlY3QgeD0iNDEwIiB5PSIyNzAiIHdpZHRoPSIxMzAiIGhlaWdodD0iNDYiIHJ4PSI0IiBjbGFzcz0iYmcgcyIvPjx0ZXh0IHg9IjQ3NS4wIiB5PSIyOTMuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODh+ODvOOCv+OCu+ODs+OCv+ODvDwvdGV4dD48bGluZSB4MT0iNDc1IiB5MT0iMjcwIiB4Mj0iNTU1IiB5Mj0iMTkwIiBjbGFzcz0ic20iLz48cmVjdCB4PSI1NzAiIHk9IjI3MCIgd2lkdGg9IjEzMCIgaGVpZ2h0PSI0NiIgcng9IjQiIGNsYXNzPSJiZyBzIi8+PHRleHQgeD0iNjM1LjAiIHk9IjI5My4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+5LyB5qWtPC90ZXh0PjxsaW5lIHgxPSI2MzUiIHkxPSIyNzAiIHgyPSI1NTUiIHkyPSIxOTAiIGNsYXNzPSJzbSIvPjx0ZXh0IHg9IjQ3NSIgeT0iMzMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPldlYiDjgoTnlJ/miJBBSSDjga7jgrXjg7zjg5A8L3RleHQ+PHRleHQgeD0iMzYwIiB5PSIzNjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMgYiI+5Lit5aSu44Gu566h55CG6ICF44Gv44GE44Gq44GE44CC54us56uL44Gr6YGL5Za244GV44KM44KL5aSa5pWw44Gu44ON44OD44OI44Ov44O844Kv44GM44Gk44Gq44GM44Gj44Gm44GE44KLPC90ZXh0Pjx0ZXh0IHg9IjM2MCIgeT0iMzkwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPua1t+WkluOBqOOBr+a1t+W6leOCseODvOODluODq+OBp+OBpOOBquOBjOOCizwvdGV4dD48L3N2Zz4K"></div>
+      
+      
+      </div>
+        <div class="pageno">14</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.2　構成</div>
+        <h2>接続の形と IX</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">トランジット</div>
+      <div class="card-b">小さな事業者が大きな事業者に費用を払い、インターネット全体へつないでもらう</div>
+    </div><div class="card">
+      <div class="card-h">ピアリング</div>
+      <div class="card-b">対等な事業者どうしが、互いの利用者宛ての通信を交換する</div>
+    </div><div class="card">
+      <div class="card-h">IX（相互接続点）</div>
+      <div class="card-b">多数の事業者が1か所に集まって相互につなぐ拠点。日本では JPIX、JPNAP など</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">IX があると線の数が減る</div>
+        <div class="co-b">n 個の事業者が互いに直接つなぐと n(n−1)/2 本の線が要る。IX に集まれば n 本で済む。</div>
+      </div><p class="note">1990年代には、国内どうしの通信が米国を往復していた。IX の整備で、国内の通信は国内で交換できるようになった。</p></div>
+        <div class="pageno">15</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.2　歴史</div>
+        <h2>インターネットの歩み</h2>
+      </header><div class="body">
+      <div class="steps" style="--n:5">
+      <div class="step first">
+        <div class="st-n">1</div>
+        <div class="st-h">1969年</div>
+        <div class="st-b">ARPANET。4拠点の計算機をつなぎ、資源を共有した</div>
+      </div>
+      <div class="step">
+        <div class="st-n">2</div>
+        <div class="st-h">1983年</div>
+        <div class="st-b">TCP/IP に切り替わる。網どうしをつなぐ共通の約束ができた</div>
+      </div>
+      <div class="step">
+        <div class="st-n">3</div>
+        <div class="st-h">1991年</div>
+        <div class="st-b">WWW の公開。誰でもページを読み書きできるようになる</div>
+      </div>
+      <div class="step">
+        <div class="st-n">4</div>
+        <div class="st-h">2007年頃</div>
+        <div class="st-b">スマートフォンの普及。常に持ち歩き、常につながる</div>
+      </div>
+      <div class="step">
+        <div class="st-n">5</div>
+        <div class="st-h">2022年</div>
+        <div class="st-b">生成AI の公開。対話で使え、やがて自分で動くようになる</div>
+      </div></div>
+      <p class="sub">電子メール、DNS（1984年）、Web —— いま使っているアプリケーションの多くは、この流れの中で生まれた。</p></div>
+        <div class="pageno">16</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">1.3</div>
+        <h1 class="sec-name">階層モデルとアプリケーション層</h1>
+        <p class="sec-tag">下の層は、中身を見ない土管として扱う</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.3　階層モデル</div>
+        <h2>TCP/IP の階層モデル</h2>
+      </header><div class="body"><p class="lead">通信の仕事を5つの層に分け、各層は自分の仕事だけをする。</p>
+      <table class="tbl  "><colgroup><col style="width:25.42%"><col style="width:27.12%"><col style="width:28.81%"><col style="width:18.64%"></colgroup><thead><tr><th>層</th><th>役割</th><th>主なプロトコル</th><th>データの呼び名</th></tr></thead><tbody><tr><td>アプリケーション層</td><td>アプリ固有のやりとり</td><td>HTTP、DNS、SMTP、SSH</td><td>メッセージ</td></tr><tr><td>トランスポート層</td><td>端と端の間の通信の品質</td><td>TCP、UDP、QUIC</td><td>セグメント</td></tr><tr><td>インターネット層</td><td>網をまたぐ中継</td><td>IP、ICMP</td><td>パケット</td></tr><tr><td>データリンク層</td><td>隣の機器への配送</td><td>Ethernet、Wi-Fi</td><td>フレーム</td></tr><tr><td>物理層</td><td>ビットを信号にする</td><td>ケーブル、電波</td><td>ビット</td></tr></tbody></table>
+      <div class="callout solid">この講義が扱うのは、一番上のアプリケーション層である</div><p class="sub">理論的な7層の OSI 参照モデルも知られているが、実際のインターネットはこの5層で動いている。</p></div>
+        <div class="pageno">18</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.3　階層モデル</div>
+        <h2>カプセル化</h2>
+      </header><div class="body"><p class="lead">上の層のデータは、下の層のデータの中身として運ばれる。各層は自分のヘッダを付け加える。</p>
+      <div class="figwrap"><img class="fig" alt="図 co-09-02" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgMzQwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjM0MCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzAwIiBoZWlnaHQ9IjM0MCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iMzMwLjAiIHk9IjU2IiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjM4IiBjbGFzcz0iYWNjVCBzIi8+PHRleHQgeD0iNDMwLjAiIHk9Ijc1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+SFRUUCDjg6Hjg4Pjgrvjg7zjgrg8L3RleHQ+PHRleHQgeD0iMTYwIiB5PSI3NSIgdGV4dC1hbmNob3I9ImVuZCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jgqLjg5fjg6rjgrHjg7zjgrfjg6fjg7PlsaQ8L3RleHQ+PHJlY3QgeD0iMjg4LjAiIHk9IjExOCIgd2lkdGg9Ijg0IiBoZWlnaHQ9IjM4IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMzMwLjAiIHk9IjEzNyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPlRDUCDjg5jjg4Pjg4A8L3RleHQ+PHJlY3QgeD0iMzcyLjAiIHk9IjExOCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIzOCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjQ3Mi4wIiB5PSIxMzciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5IVFRQIOODoeODg+OCu+ODvOOCuDwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjEzNyIgdGV4dC1hbmNob3I9ImVuZCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jg4jjg6njg7Pjgrnjg53jg7zjg4jlsaQ8L3RleHQ+PGxpbmUgeDE9IjE3MCIgeTE9IjEwMiIgeDI9IjE3MCIgeTI9IjExNiIgY2xhc3M9InNtIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjxyZWN0IHg9IjI1MC4wIiB5PSIxODAiIHdpZHRoPSI3NiIgaGVpZ2h0PSIzOCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjI4OC4wIiB5PSIxOTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5JUCDjg5jjg4Pjg4A8L3RleHQ+PHJlY3QgeD0iMzI2LjAiIHk9IjE4MCIgd2lkdGg9Ijg0IiBoZWlnaHQ9IjM4IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMzY4LjAiIHk9IjE5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPlRDUCDjg5jjg4Pjg4A8L3RleHQ+PHJlY3QgeD0iNDEwLjAiIHk9IjE4MCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIzOCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjUxMC4wIiB5PSIxOTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5IVFRQIOODoeODg+OCu+ODvOOCuDwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjE5OSIgdGV4dC1hbmNob3I9ImVuZCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jgqTjg7Pjgr/jg7zjg43jg4Pjg4jlsaQ8L3RleHQ+PGxpbmUgeDE9IjE3MCIgeTE9IjE2NCIgeDI9IjE3MCIgeTI9IjE3OCIgY2xhc3M9InNtIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjxyZWN0IHg9IjE3Ni4wIiB5PSIyNDIiIHdpZHRoPSIxMDQiIGhlaWdodD0iMzgiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSIyMjguMCIgeT0iMjYxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+RXRoZXJuZXQg44OY44OD44OAPC90ZXh0PjxyZWN0IHg9IjI4MC4wIiB5PSIyNDIiIHdpZHRoPSI3NiIgaGVpZ2h0PSIzOCIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjMxOC4wIiB5PSIyNjEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5JUCDjg5jjg4Pjg4A8L3RleHQ+PHJlY3QgeD0iMzU2LjAiIHk9IjI0MiIgd2lkdGg9Ijg0IiBoZWlnaHQ9IjM4IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMzk4LjAiIHk9IjI2MSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPlRDUCDjg5jjg4Pjg4A8L3RleHQ+PHJlY3QgeD0iNDQwLjAiIHk9IjI0MiIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIzOCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjU0MC4wIiB5PSIyNjEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5IVFRQIOODoeODg+OCu+ODvOOCuDwvdGV4dD48cmVjdCB4PSI2NDAuMCIgeT0iMjQyIiB3aWR0aD0iNDQiIGhlaWdodD0iMzgiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI2NjIuMCIgeT0iMjYxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+RkNTPC90ZXh0Pjx0ZXh0IHg9IjE2MCIgeT0iMjYxIiB0ZXh0LWFuY2hvcj0iZW5kIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIGIiPuODh+ODvOOCv+ODquODs+OCr+WxpDwvdGV4dD48bGluZSB4MT0iMTcwIiB5MT0iMjI2IiB4Mj0iMTcwIiB5Mj0iMjQwIiBjbGFzcz0ic20iIG1hcmtlci1lbmQ9InVybCgjYW0pIi8+PHRleHQgeD0iNDAwIiB5PSIzMDYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXMgYiI+5bGk44KS6ZmN44KK44KL44GU44Go44Gr44CB44Gd44Gu5bGk44Gu44OY44OD44OA44Gn5YyF44G+44KM44KL44CC5Y+X5L+h5YG044Gn44Gv6YCG6aCG44Gr5Yml44GM44GZPC90ZXh0Pjx0ZXh0IHg9IjQwMCIgeT0iMzI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuWQhOWxpOOBr+iHquWIhuOBruODmOODg+ODgOOBl+OBi+imi+OBquOBhDwvdGV4dD48L3N2Zz4K"></div>
+      <p class="caption">封筒の比喩：手紙を書き、封筒に何通目かを書き、宛先を書き、配送業者の伝票を貼る。</p>
+      
+      </div>
+        <div class="pageno">19</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.3　アプリケーション層</div>
+        <h2>アプリケーションから見たネットワーク</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 01-01" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgMzgwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjM4MCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjM4MCIgY2xhc3M9ImJnIi8+PHRleHQgeD0iMTMwIiB5PSIyNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jgq/jg6njgqTjgqLjg7Pjg4g8L3RleHQ+PHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjUwIiByeD0iNiIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzMC4wIiB5PSI2NS4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIGIiPuODluODqeOCpuOCtjwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMTA0IiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE1MCIgcng9IjYiIGNsYXNzPSJub25lIHNtIGRhc2giLz48cmVjdCB4PSI1NCIgeT0iMTE0IiB3aWR0aD0iMTUyIiBoZWlnaHQ9IjI4IiByeD0iMyIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjEzMC4wIiB5PSIxMjguMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jg4jjg6njg7Pjgrnjg53jg7zjg4jlsaQ8L3RleHQ+PHJlY3QgeD0iNTQiIHk9IjE0OCIgd2lkdGg9IjE1MiIgaGVpZ2h0PSIyOCIgcng9IjMiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSIxMzAuMCIgeT0iMTYyLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+44Kk44Oz44K/44O844ON44OD44OI5bGkPC90ZXh0PjxyZWN0IHg9IjU0IiB5PSIxODIiIHdpZHRoPSIxNTIiIGhlaWdodD0iMjgiIHJ4PSIzIiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iMTMwLjAiIHk9IjE5Ni4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuODh+ODvOOCv+ODquODs+OCr+WxpDwvdGV4dD48cmVjdCB4PSI1NCIgeT0iMjE2IiB3aWR0aD0iMTUyIiBoZWlnaHQ9IjI4IiByeD0iMyIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjEzMC4wIiB5PSIyMzAuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7niannkIblsaQ8L3RleHQ+PHRleHQgeD0iNTkwIiB5PSIyNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jgrXjg7zjg5A8L3RleHQ+PHJlY3QgeD0iNTAwIiB5PSI0MCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI1MCIgcng9IjYiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSI1OTAuMCIgeT0iNjUuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj5XZWIg44K144O844OQPC90ZXh0PjxyZWN0IHg9IjUwMCIgeT0iMTA0IiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE1MCIgcng9IjYiIGNsYXNzPSJub25lIHNtIGRhc2giLz48cmVjdCB4PSI1MTQiIHk9IjExNCIgd2lkdGg9IjE1MiIgaGVpZ2h0PSIyOCIgcng9IjMiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI1OTAuMCIgeT0iMTI4LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+44OI44Op44Oz44K544Od44O844OI5bGkPC90ZXh0PjxyZWN0IHg9IjUxNCIgeT0iMTQ4IiB3aWR0aD0iMTUyIiBoZWlnaHQ9IjI4IiByeD0iMyIgY2xhc3M9InRpbnQgcyIvPjx0ZXh0IHg9IjU5MC4wIiB5PSIxNjIuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7jgqTjg7Pjgr/jg7zjg43jg4Pjg4jlsaQ8L3RleHQ+PHJlY3QgeD0iNTE0IiB5PSIxODIiIHdpZHRoPSIxNTIiIGhlaWdodD0iMjgiIHJ4PSIzIiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNTkwLjAiIHk9IjE5Ni4wIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuODh+ODvOOCv+ODquODs+OCr+WxpDwvdGV4dD48cmVjdCB4PSI1MTQiIHk9IjIxNiIgd2lkdGg9IjE1MiIgaGVpZ2h0PSIyOCIgcng9IjMiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSI1OTAuMCIgeT0iMjMwLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+54mp55CG5bGkPC90ZXh0PjxsaW5lIHgxPSIyMjQiIHkxPSI1OCIgeDI9IjQ5NiIgeTI9IjU4IiBjbGFzcz0ic2EiIG1hcmtlci1lbmQ9InVybCgjYWEpIi8+PGxpbmUgeDE9IjQ5NiIgeTE9Ijc0IiB4Mj0iMjI0IiB5Mj0iNzQiIGNsYXNzPSJzYSIgbWFya2VyLWVuZD0idXJsKCNhYSkiLz48dGV4dCB4PSIzNjAiIHk9IjQ2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBhY2MgYiI+SFRUUCDjga7jg6Hjg4Pjgrvjg7zjgrg8L3RleHQ+PHRleHQgeD0iMzYwIiB5PSI5MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuW9ouW8j+ODu+mghueVquODu+aEj+WRs+OBrue0hOadnyDvvJ0g44OX44Ot44OI44Kz44OrPC90ZXh0Pjx0ZXh0IHg9IjM2MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBsYmwiPuOBk+OBruism+e+qeOBp+OBrzwvdGV4dD48dGV4dCB4PSIzNjAiIHk9IjE2OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbGJsIj7kuK3ouqvjgpLopovjgarjgYQ8L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjI4NiIgd2lkdGg9IjYwMCIgaGVpZ2h0PSI0MCIgcng9IjIwIiBjbGFzcz0idGludDIgcyIvPjx0ZXh0IHg9IjM2MCIgeT0iMzA2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIGIiPuWcn+euoe+8muODoeODg+OCu+ODvOOCuOOCkuebuOaJi+OBvuOBp+WxiuOBkeOBpuOBj+OCjOOCizwvdGV4dD48bGluZSB4MT0iMTMwIiB5MT0iMjU0IiB4Mj0iMTMwIiB5Mj0iMjg0IiBjbGFzcz0ic20iIG1hcmtlci1lbmQ9InVybCgjYW0pIi8+PGxpbmUgeDE9IjU5MCIgeTE9IjI4NCIgeDI9IjU5MCIgeTI9IjI1NCIgY2xhc3M9InNtIiBtYXJrZXItZW5kPSJ1cmwoI2FtKSIvPjx0ZXh0IHg9IjM2MCIgeT0iMzU2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj7jgqLjg5fjg6rjgrHjg7zjgrfjg6fjg7Pjga/jgIzkvZXjgpLpgIHjgovjgYvjgI3jgaDjgZHjgpLogIPjgYjjgIHjgIzjganjgYblsYrjgZHjgovjgYvjgI3jga/kuIvjga7lsaTjgavku7vjgZvjgos8L3RleHQ+PC9zdmc+Cg=="></div>
+      
+      
+      </div>
+        <div class="pageno">20</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.3　プロトコル</div>
+        <h2>プロトコルは何を決めているか</h2>
+      </header><div class="body"><p class="lead">プロトコルは、通信する者どうしの約束ごとである。</p>
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">形式</div>
+      <div class="card-b">メッセージの書き方。HTTP なら「GET /index.html HTTP/1.1」のように書く</div>
+    </div><div class="card">
+      <div class="card-h">順番</div>
+      <div class="card-b">誰が先に何を送るか。クライアントが要求し、サーバが応答する</div>
+    </div><div class="card">
+      <div class="card-h">意味</div>
+      <div class="card-b">受け取ったものをどう解釈するか。200 は成功、404 は見つからない</div>
+    </div></div>
+      <div class="callout dashed">
+        <div class="co-h">アプリケーション層のプロトコルの多くは、人が読める文字で書かれている</div>
+        <div class="co-b">HTTP、SMTP、JSON。HTTP/2 以降は2進の形式になったが、運んでいる意味は同じである。</div>
+      </div><p class="note">第2〜4回では、実際に流れている文字を自分の目で見る。</p></div>
+        <div class="pageno">21</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">1.4</div>
+        <h1 class="sec-name">クライアント・サーバとポート番号</h1>
+        <p class="sec-tag">IP アドレスで計算機を、ポート番号でアプリを選ぶ</p>
+      </div><div class="motif"><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.4　形</div>
+        <h2>クライアント・サーバと P2P</h2>
+      </header><div class="body">
+      <div class="split"><div class="col"><div class="col-h">クライアント・サーバ</div><ul class="bullets tight"><li>役割が固定。サーバが待ち、クライアントが要求する</li><li>管理しやすいが、サーバに負荷が集まる</li><li>例：Web、メール、LLM API</li></ul></div><div class="col"><div class="col-h">P2P（ピアツーピア）</div><ul class="bullets tight"><li>参加者が対等に、互いにサービスを提供する</li><li>サーバなしで規模が伸びるが、管理が難しい</li><li>例：BitTorrent、ビデオ通話の一部</li></ul></div></div>
+      <p class="note">この講義の大部分はクライアント・サーバを扱う。P2P は第5回で扱う。</p></div>
+        <div class="pageno">23</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.4　ポート番号</div>
+        <h2>IP アドレスとポート番号</h2>
+      </header><div class="body">
+      <div class="figwrap"><img class="fig" alt="図 01-03" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MjAgMzgwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjM4MCIgcm9sZT0iaW1nIj48c3R5bGU+CnN2ZyB7IGZvbnQtZmFtaWx5OiAiSGVsdmV0aWNhIE5ldWUiLCBBcmlhbCwgIkhpcmFnaW5vIFNhbnMiLCAiWXUgR290aGljIiwgIk5vdG8gU2FucyBKUCIsIHNhbnMtc2VyaWY7IH0KLyog57ea44Gu44Kv44Op44K544KS5YWI44Gr572u44GP44CCZmlsbDogbm9uZSDjgpLmjIHjgZ/jgZvjgabjgYTjgovjga7jga/jgIHnt5rjgaDjgZHjga7lm7PlvaLjgYwKICAg5pei5a6a44Gu6buS44Gn5aGX44KJ44KM44Gq44GE44KI44GG44Gr44GZ44KL44Gf44KB44CC44Gf44Gg44GX44GT44KM44KS5aGX44KK44Gu44Kv44Op44K544KI44KKCiAgIOW+jOOBq+abuOOBj+OBqOOAgeWQjOOBmOips+e0sOW6puOBquOBruOBp+W+jOWLneOBoeOBpyBjbHM9J3RpbnQyIHMnIOOBruWhl+OCiuOBjOa2iOOBiOOCi+OAggogICDlrp/pmpvjgZ3jgYbjgarjgaPjgabjgYrjgorjgIHlhajlm7PjgafloZfjgorjgYzlh7rjgabjgYTjgarjgYvjgaPjgZ/vvIgyMDI2LTA5LTIyIOOBq+S/ruato++8ieOAgiAqLwoucyAgICB7IHN0cm9rZTogIzE2MTkxZDsgc3Ryb2tlLXdpZHRoOiAxLjY7IGZpbGw6IG5vbmU7IH0KLnMyICAgeyBzdHJva2U6ICMxNjE5MWQ7IHN0cm9rZS13aWR0aDogMi42OyBmaWxsOiBub25lOyB9Ci5zbSAgIHsgc3Ryb2tlOiAjNWY2NjcyOyBzdHJva2Utd2lkdGg6IDEuMjsgZmlsbDogbm9uZTsgfQouc2EgICB7IHN0cm9rZTogIzBiNWNhZDsgc3Ryb2tlLXdpZHRoOiAyLjI7IGZpbGw6IG5vbmU7IH0KLmRhc2ggeyBzdHJva2UtZGFzaGFycmF5OiA1IDQ7IH0KLmRvdCAgeyBzdHJva2UtZGFzaGFycmF5OiAxLjUgMzsgfQovKiDloZfjgorjga7jgq/jg6njgrnjgILnt5rjga7jgq/jg6njgrnjgojjgorlvozjgavnva7jgY/jgZPjgajjgacgY2xzPSd0aW50MiBzJyDjgYzloZfjgonjgozjgosgKi8KLmJnICAgeyBmaWxsOiAjZmZmZmZmOyB9Ci5pbmsgIHsgZmlsbDogIzE2MTkxZDsgfQoubXV0ICB7IGZpbGw6ICM1ZjY2NzI7IH0KLnRpbnQgeyBmaWxsOiAjZWVmMWY1OyB9Ci50aW50MnsgZmlsbDogI2RkZTRlYzsgfQouYWNjICB7IGZpbGw6ICMwYjVjYWQ7IH0KLmFjY1QgeyBmaWxsOiAjZDllNmY0OyB9Ci5ub25lIHsgZmlsbDogbm9uZTsgfQp0ZXh0ICB7IGZpbGw6ICMxNjE5MWQ7IGZvbnQtc2l6ZTogMTRweDsgfQoudC1zICB7IGZvbnQtc2l6ZTogMTJweDsgfQoudC14cyB7IGZvbnQtc2l6ZTogMTAuNXB4OyB9Ci50LWwgIHsgZm9udC1zaXplOiAxN3B4OyB9Ci50LXhsIHsgZm9udC1zaXplOiAyMXB4OyB9Ci5iICAgIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQouaSAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQoubSAgICB7IGZvbnQtZmFtaWx5OiAiU0YgTW9ubyIsIE1lbmxvLCBDb25zb2xhcywgbW9ub3NwYWNlOyB9Ci5sYmwgIHsgZmlsbDogIzVmNjY3MjsgfQpAbWVkaWEgKHByZWZlcnMtY29sb3Itc2NoZW1lOiBkYXJrKSB7CiAgLmJnICAgeyBmaWxsOiAjMTQxNzFiOyB9CiAgLmluayAgeyBmaWxsOiAjZThlYmVmOyB9CiAgLm11dCAgeyBmaWxsOiAjOWFhM2IwOyB9CiAgLnRpbnQgeyBmaWxsOiAjMjMyODMwOyB9CiAgLnRpbnQyeyBmaWxsOiAjMmUzNDNkOyB9CiAgLmFjYyAgeyBmaWxsOiAjNmFiMGYzOyB9CiAgLmFjY1QgeyBmaWxsOiAjMWUyYzNjOyB9CiAgLnMsIC5zMiB7IHN0cm9rZTogI2U4ZWJlZjsgfQogIC5zbSAgIHsgc3Ryb2tlOiAjOWFhM2IwOyB9CiAgLnNhICAgeyBzdHJva2U6ICM2YWIwZjM7IH0KICB0ZXh0ICB7IGZpbGw6ICNlOGViZWY7IH0KICAubGJsICB7IGZpbGw6ICM5YWEzYjA7IH0KfQo8L3N0eWxlPgo8ZGVmcz4KIDxtYXJrZXIgaWQ9ImEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImluayIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYWEiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjciIG1hcmtlckhlaWdodD0iNyIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9ImFjYyIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0iYW0iIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjYiIG1hcmtlckhlaWdodD0iNiIKICAgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPjxwYXRoIGQ9Ik0wLDAgTDEwLDUgTDAsMTAgeiIgY2xhc3M9Im11dCIvPjwvbWFya2VyPgogPG1hcmtlciBpZD0ibyIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI1IiByZWZZPSI1IiBtYXJrZXJXaWR0aD0iNiIgbWFya2VySGVpZ2h0PSI2Ij4KICAgPGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjMuNSIgY2xhc3M9ImJnIHMiLz48L21hcmtlcj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNzIwIiBoZWlnaHQ9IjM4MCIgY2xhc3M9ImJnIi8+PHJlY3QgeD0iMjAiIHk9IjYwIiB3aWR0aD0iMjIwIiBoZWlnaHQ9IjE4MCIgcng9IjgiIGNsYXNzPSJ0aW50IHMiLz48dGV4dCB4PSIxMzAiIHk9IjgyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC1zIGIiPuOBguOBquOBn+OBriBQQzwvdGV4dD48dGV4dCB4PSIxMzAiIHk9IjEwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbSBsYmwiPjE5Mi4xNjguMS4yMzwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMTMwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjUwIiByeD0iNCIgY2xhc3M9ImFjY1QgcyIvPjx0ZXh0IHg9IjEzMC4wIiB5PSIxNDcuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODluODqeOCpuOCtjwvdGV4dD48dGV4dCB4PSIxMzAuMCIgeT0iMTYzLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg53jg7zjg4ggNTAxMjPvvIjkuIDmmYLnmoTvvIk8L3RleHQ+PHJlY3QgeD0iNDcwIiB5PSI0MCIgd2lkdGg9IjIzMCIgaGVpZ2h0PSIyNTAiIHJ4PSI4IiBjbGFzcz0idGludCBzIi8+PHRleHQgeD0iNTg1IiB5PSI2MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQtcyBiIj7jgrXjg7zjg5A8L3RleHQ+PHRleHQgeD0iNTg1IiB5PSI4MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMgbSBsYmwiPjIwMy4wLjExMy4xMDwvdGV4dD48cmVjdCB4PSI0OTAiIHk9IjEwMCIgd2lkdGg9IjE5MCIgaGVpZ2h0PSI0NiIgcng9IjQiIGNsYXNzPSJhY2NUIHMiLz48dGV4dCB4PSI1ODUuMCIgeT0iMTE1LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5XZWIg44K144O844OQPC90ZXh0Pjx0ZXh0IHg9IjU4NS4wIiB5PSIxMzEuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODneODvOODiCA0NDM8L3RleHQ+PHJlY3QgeD0iNDkwIiB5PSIxNjAiIHdpZHRoPSIxOTAiIGhlaWdodD0iNDYiIHJ4PSI0IiBjbGFzcz0iYmcgcyIvPjx0ZXh0IHg9IjU4NS4wIiB5PSIxNzUuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODoeODvOODq+OCteODvOODkDwvdGV4dD48dGV4dCB4PSI1ODUuMCIgeT0iMTkxLjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj7jg53jg7zjg4ggNTg3PC90ZXh0PjxyZWN0IHg9IjQ5MCIgeT0iMjIwIiB3aWR0aD0iMTkwIiBoZWlnaHQ9IjQ2IiByeD0iNCIgY2xhc3M9ImJnIHMiLz48dGV4dCB4PSI1ODUuMCIgeT0iMjM1LjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIj5TU0gg44K144O844OQPC90ZXh0Pjx0ZXh0IHg9IjU4NS4wIiB5PSIyNTEuMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgY2xhc3M9InQteHMiPuODneODvOODiCAyMjwvdGV4dD48bGluZSB4MT0iMjIyIiB5MT0iMTU1IiB4Mj0iNDg2IiB5Mj0iMTIzIiBjbGFzcz0ic2EiIG1hcmtlci1lbmQ9InVybCgjYWEpIi8+PHRleHQgeD0iMzU0IiB5PSIxMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGFjYyBiIj7lrpvlhYggMjAzLjAuMTEzLjEwIOOBriA0NDMg55Wq44G4PC90ZXh0Pjx0ZXh0IHg9IjM1NCIgeT0iMTYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+SVAg44Ki44OJ44Os44K544Gn6KiI566X5qmf44KS6YG444GzPC90ZXh0Pjx0ZXh0IHg9IjM1NCIgeT0iMTc4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyI+44Od44O844OI55Wq5Y+344Gn44Ki44OX44Oq44KS6YG444G2PC90ZXh0Pjx0ZXh0IHg9IjM2MCIgeT0iMzI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBjbGFzcz0idC14cyBiIj7pgJrkv6Hjga8144Gk57WE44Gn5Yy65Yil44GZ44KL77ya6YCB5L+h5YWD44GuIElQIOOBqOODneODvOODiOODu+Wum+WFiOOBriBJUCDjgajjg53jg7zjg4jjg7tUQ1Ag44GLIFVEUCDjgYs8L3RleHQ+PHRleHQgeD0iMzYwIiB5PSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGNsYXNzPSJ0LXhzIGxibCI+44Gg44GL44KJMeWPsOOBruOCteODvOODkOOBpyBXZWIg44Go44Oh44O844Or44KS5ZCM5pmC44Gr5YuV44GL44Gb44CB44OW44Op44Km44K244Gu44K/44OW44KS5L2V5p6a6ZaL44GE44Gm44KC5re344GW44KJ44Gq44GEPC90ZXh0Pjwvc3ZnPgo="></div>
+      
+      
+      </div>
+        <div class="pageno">24</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.4　ポート番号</div>
+        <h2>よく使われるポート番号</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:20.34%"><col style="width:27.12%"><col style="width:52.54%"></colgroup><thead><tr><th>ポート</th><th>プロトコル</th><th>用途</th></tr></thead><tbody><tr><td>22</td><td>SSH</td><td>遠隔ログイン（第8回）</td></tr><tr><td>25 / 587</td><td>SMTP</td><td>メールの中継 / メールの送信（第2回）</td></tr><tr><td>53</td><td>DNS</td><td>名前解決（第2回）</td></tr><tr><td>80 / 443</td><td>HTTP / HTTPS</td><td>Web（第3回）</td></tr><tr><td>993</td><td>IMAP（TLS）</td><td>メールの受信（第2回）</td></tr><tr><td>853</td><td>DNS over TLS</td><td>暗号化した名前解決（第2回）</td></tr></tbody></table>
+      <p class="sub">0〜1023 番は、広く使われるサービスのために決められた番号（well-known ポート）。<br>クライアント側の番号は、OS が空いている大きな番号から一時的に割り当てる。</p></div>
+        <div class="pageno">25</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.4　確かめる</div>
+        <h2>確かめてみよう：いまつながっている相手</h2>
+      </header><div class="body"><pre class="code small"># macOS / Linux
+netstat -an | grep ESTABLISHED
+
+# Windows（PowerShell）
+netstat -an | findstr ESTABLISHED
+
+# 出力の例（macOS）
+tcp4   0   0   192.168.1.23.50123   142.250.196.110.443   ESTABLISHED</pre><p class="sub">1行が1本の通信。左が自分の「IP アドレス.ポート番号」、右が相手。相手のポートが 443 なら HTTPS、993 なら IMAP。<br>ブラウザのタブを増やすと行が増える。それぞれ自分側のポート番号が違うことを確かめる。</p></div>
+        <div class="pageno">26</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">1.4　デモ</div>
+        <h2>デモ：シミュレータで HTTP の流れを見る</h2>
+      </header><div class="body"><p class="lead">研究室のネットワークシミュレータ koidelab で、ブラウザの要求がルータを越えてサーバに届き、応答が戻る様子を見せる。</p><div class="code-split">
+          <pre class="code small">nodes:
+  web_browser: {type: WebBrowser}
+  web_server:  {type: WebServer}
+  pc1:
+    type: PC
+    tcp_apps: {3333: web_browser}
+  pc2:
+    type: PC
+    tcp_apps: {80: web_server}
+  router1: ...</pre>
+          <div class="side"><div class="side-h">見るところ</div>
+            <div class="side-b">pc2 の 80 番でサーバが待ち、pc1 のブラウザがそこへ要求を送る。<br><br>ルータは中身（HTTP）を見ずに中継するだけ。アプリケーション層のやりとりは、両端の2つだけが理解している。</div></div>
+        </div><p class="note">examples/basic_http.yaml（一部を省略して書き直したもの）。教員のデモで使う。</p></div>
+        <div class="pageno">27</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第1回</div>
+        <h2>演習</h2>
+      </header><div class="body"><ul class="ex">
+      <li><span class="ex-n">1-1</span><span class="ex-t">今日使ったネットワークのサービスを3つ挙げ、それぞれクライアントとサーバが何かを答えよ。</span></li>
+      <li><span class="ex-n">1-2</span><span class="ex-t">アプリケーション層が下の層を「中身を見ない土管」として扱えることの利点を説明せよ。</span></li>
+      <li><span class="ex-n">1-3</span><span class="ex-t">1台のサーバで Web とメールを同時に動かせるのはなぜか。IP アドレスとポート番号の役割から説明せよ。</span></li>
+      <li><span class="ex-n">1-4</span><span class="ex-t">（手を動かす）自分の PC で netstat を実行し、ESTABLISHED の行を1つ選んで、相手のポート番号からプロトコルを推測せよ。</span></li></ul></div>
+        <div class="pageno">28</div>
+      </section>
+<section class="slide dark ">
+      <div class="sum-wrap">
+        <h1 class="sum-t">まとめ</h1>
+        <ul class="sum">
+      <li><span class="s-h">インターネット</span><span class="s-b">独立に運営される多数のネットワークがつながった「網の網」。中央の管理者はいない</span></li>
+      <li><span class="s-h">アプリケーション</span><span class="s-b">生成AI、動画、SNS、決済。どれもネットワークの上でメッセージをやりとりしている</span></li>
+      <li><span class="s-h">階層モデル</span><span class="s-b">各層は下の層を土管として扱う。この講義はアプリケーション層だけを見る</span></li>
+      <li><span class="s-h">プロトコル</span><span class="s-b">メッセージの形式・順番・意味の約束。アプリケーション層の多くは人が読める文字で書かれている</span></li>
+      <li><span class="s-h">ポート番号</span><span class="s-b">IP アドレスで計算機を、ポート番号でアプリを選ぶ。443 は HTTPS、53 は DNS</span></li></ul>
+        <p class="next"><b>次回</b>　第2回　DNS と電子メール</p>
+      </div></section>
+</div>
+<div id="hud"><span id="cur">1</span> / <span id="total">29</span></div>
+<div id="help" hidden>
+  <h3>操作</h3>
+  <table>
+    <tr><td>→ ↓ Space PageDown</td><td>次へ</td></tr>
+    <tr><td>← ↑ PageUp</td><td>前へ</td></tr>
+    <tr><td>Home / End</td><td>最初 / 最後</td></tr>
+    <tr><td>数字 + Enter</td><td>その番号へ</td></tr>
+    <tr><td>O</td><td>一覧表示</td></tr>
+    <tr><td>F</td><td>全画面</td></tr>
+    <tr><td>C</td><td>組版チェック（溢れの検出）</td></tr>
+    <tr><td>P</td><td>印刷（PDF 保存）</td></tr>
+    <tr><td>?</td><td>この画面</td></tr>
+  </table>
+  <p>印刷は1枚1ページで出る。PDF にすれば pptx を配るのと同じことができる。</p>
+</div>
+<script>
+
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var cur=0, buf='';
+  var hud=document.getElementById('cur'), help=document.getElementById('help');
+
+  // 板を画面に合わせて拡大縮小する
+  function fit(){
+    var s=Math.min(innerWidth/1280, innerHeight/720);
+    document.documentElement.style.setProperty('--s', s);
+    var ow=(310)/1280;
+    slides.forEach(function(el){ el.style.setProperty('--os', ow); });
+    if(document.body.classList.contains('overview')) layoutOverview();
+  }
+  function layoutOverview(){
+    // 一覧では実寸の板を縮めて置くので、親に実際の見かけの大きさを持たせる
+    var cell=deck.clientWidth/Math.max(1,Math.floor(deck.clientWidth/330));
+    var s=(cell-8)/1280;
+    slides.forEach(function(el){
+      el.style.setProperty('--os', s);
+      el.style.marginBottom=(720*s-720)+'px';
+      el.style.marginRight=(1280*s-1280)+'px';
+    });
+  }
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(el,j){ el.classList.toggle('on', j===cur); });
+    hud.textContent=cur+1;
+    if(location.hash!=='#'+(cur+1)) history.replaceState(null,'','#'+(cur+1));
+  }
+  function overview(on){
+    document.body.classList.toggle('overview', on);
+    if(on){ slides.forEach(function(el){ el.classList.add('on'); }); layoutOverview();
+            slides[cur].scrollIntoView({block:'center'}); }
+    else { slides.forEach(function(el){ el.style.margin=''; }); fit(); show(cur); }
+  }
+
+  // 組版チェック。実際に描いた結果を測るので、見積もりではなく事実が分かる。
+  // pptx では PowerPoint に描かせるまで分からなかった部分である。
+  function check(){
+    var bad=[];
+    slides.forEach(function(el,i){
+      var was=el.classList.contains('on');
+      el.classList.add('on');
+      var over=false;
+      [].slice.call(el.querySelectorAll('*')).forEach(function(n){
+        var r=n.getBoundingClientRect(), e=el.getBoundingClientRect();
+        if(r.height&&(r.bottom>e.bottom+1||r.right>e.right+1)) over=true;
+      });
+      if(el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1) over=true;
+      el.classList.toggle('overflow', over);
+      if(over) bad.push(i+1);
+      if(!was) el.classList.remove('on');
+    });
+    document.body.classList.add('check');
+    slides[cur].classList.add('on');
+    console.log(bad.length? '組版あふれ: '+bad.length+'枚 → '+bad.join(', ') : '組版あふれなし');
+    return bad;
+  }
+
+  addEventListener('resize', fit);
+  addEventListener('hashchange', function(){
+    var n=parseInt(location.hash.slice(1),10); if(n) show(n-1);
+  });
+  addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k>='0'&&k<='9'){ buf+=k; return; }
+    if(k==='Enter'){ if(buf){ show(parseInt(buf,10)-1); buf=''; } return; }
+    buf='';
+    switch(k){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); show(cur+1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); show(cur-1); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length-1); break;
+      case 'o': case 'O': overview(!document.body.classList.contains('overview')); break;
+      case 'f': case 'F':
+        if(document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen(); break;
+      case 'c': case 'C':
+        if(document.body.classList.contains('check')){
+          document.body.classList.remove('check');
+          slides.forEach(function(el){ el.classList.remove('overflow'); });
+        } else check();
+        break;
+      case 'p': case 'P': print(); break;
+      case '?': help.hidden=!help.hidden; break;
+      case 'Escape': help.hidden=true; if(document.body.classList.contains('overview')) overview(false); break;
+    }
+  });
+  deck.addEventListener('click', function(e){
+    var el=e.target.closest('.slide'); if(!el) return;
+    if(document.body.classList.contains('overview')){
+      show(slides.indexOf(el)); overview(false);
+    } else show(cur+1);
+  });
+
+  fit();
+  var n=parseInt(location.hash.slice(1),10);
+  show(n? n-1 : 0);
+  window.__check=check;
+})();
+</script>
+</body>
+</html>

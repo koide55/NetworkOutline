@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="400" class="bg"/><rect x="10" y="160" width="110" height="64" rx="4" class="tint s"/><text x="65.0" y="184.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">送信者の</text><text x="65.0" y="200.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">メールソフト</text><rect x="190" y="160" width="120" height="64" rx="4" class="bg s"/><text x="250.0" y="184.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">送信側の</text><text x="250.0" y="200.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">メールサーバ</text><rect x="390" y="150" width="140" height="84" rx="4" class="accT s"/><text x="460" y="172" text-anchor="middle" dominant-baseline="middle" class="t-xs b">受信側の</text><text x="460" y="189" text-anchor="middle" dominant-baseline="middle" class="t-xs b">メールサーバ</text><rect x="405" y="200" width="110" height="26" rx="3" class="bg s"/><text x="460.0" y="213.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">メールボックス</text><rect x="610" y="160" width="100" height="64" rx="4" class="tint s"/><text x="660.0" y="184.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">受信者の</text><text x="660.0" y="200.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">メールソフト</text><line x1="120" y1="192" x2="186" y2="192" class="s" marker-end="url(#a)"/><text x="155.0" y="180" text-anchor="middle" dominant-baseline="middle" class="t-xs b">SMTP 587</text><text x="155.0" y="212" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">ログイン</text><text x="155.0" y="228" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">して送る</text><line x1="310" y1="192" x2="386" y2="192" class="sa" marker-end="url(#aa)"/><text x="350.0" y="180" text-anchor="middle" dominant-baseline="middle" class="t-xs b acc">SMTP 25</text><text x="350.0" y="212" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">サーバ</text><text x="350.0" y="228" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">どうし</text><line x1="610" y1="192" x2="534" y2="192" class="s" marker-end="url(#a)"/><text x="570.0" y="180" text-anchor="middle" dominant-baseline="middle" class="t-xs b">IMAP 993</text><text x="570.0" y="212" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">読みに</text><text x="570.0" y="228" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">行く</text><rect x="200" y="30" width="260" height="50" rx="4" class="tint2 s"/><text x="330.0" y="47.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">DNS</text><text x="330.0" y="63.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">「example.jp の MX は？」</text><path d="M250,160 C250,120 270,100 290,84" class="sm dash" marker-end="url(#am)"/><text x="272" y="118" text-anchor="start" dominant-baseline="middle" class="t-xs lbl">宛先のドメインの受け取り先を引く</text><rect x="590" y="300" width="120" height="50" rx="4" class="tint s"/><text x="650.0" y="317.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">ブラウザ</text><text x="650.0" y="333.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">（Web メール）</text><path d="M590,325 C530,325 490,300 475,238" class="sm" marker-end="url(#am)"/><text x="520" y="330" text-anchor="end" dominant-baseline="middle" class="t-xs">HTTPS 443</text><text x="360" y="380" text-anchor="middle" dominant-baseline="middle" class="t-s b">送るのは SMTP、読むのは IMAP（か HTTPS）、受け取り先を教えるのは DNS</text></svg>

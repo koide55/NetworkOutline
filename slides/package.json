@@ -1,0 +1,13 @@
+{
+  "name": "network-outline-slides",
+  "private": true,
+  "description": "通信工学通論（アプリケーション層編）のスライドを組む",
+  "scripts": {
+    "build": "node tools/build.js",
+    "build:html": "node tools/build-html.js",
+    "build:md": "node tools/build-md.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "4.0.1"
+  }
+}

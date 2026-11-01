@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="420" class="bg"/><rect x="20" y="70" width="220" height="280" rx="8" class="tint s"/><text x="130" y="92" text-anchor="middle" dominant-baseline="middle" class="t-s b">ホスト（AI アプリ）</text><text x="130" y="110" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">Claude、IDE、自作のエージェント</text><rect x="50" y="130" width="160" height="40" rx="4" class="bg s"/><text x="130.0" y="150.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">MCP クライアント</text><rect x="50" y="200" width="160" height="40" rx="4" class="bg s"/><text x="130.0" y="220.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">MCP クライアント</text><rect x="50" y="270" width="160" height="40" rx="4" class="bg s"/><text x="130.0" y="290.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">MCP クライアント</text><rect x="300" y="14" width="150" height="36" rx="4" class="accT s"/><text x="375.0" y="32.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">LLM API</text><path d="M190,70 C190,40 240,32 296,32" class="sm" marker-end="url(#am)"/><text x="232" y="56" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">HTTPS</text><rect x="370" y="124" width="150" height="52" rx="4" class="bg s"/><text x="445" y="143" text-anchor="middle" dominant-baseline="middle" class="t-s b">ファイル</text><text x="445" y="161" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">MCP サーバ（手元）</text><line x1="212" y1="150" x2="366" y2="150" class="s" marker-end="url(#a)"/><line x1="366" y1="158" x2="212" y2="158" class="sm" marker-end="url(#am)"/><text x="289" y="141" text-anchor="middle" dominant-baseline="middle" class="t-xs">標準入出力</text><rect x="370" y="194" width="150" height="52" rx="4" class="accT s"/><text x="445" y="213" text-anchor="middle" dominant-baseline="middle" class="t-s b">メール</text><text x="445" y="231" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">MCP サーバ（遠隔）</text><line x1="212" y1="220" x2="366" y2="220" class="s" marker-end="url(#a)"/><line x1="366" y1="228" x2="212" y2="228" class="sm" marker-end="url(#am)"/><text x="289" y="211" text-anchor="middle" dominant-baseline="middle" class="t-xs">HTTP</text><rect x="370" y="264" width="150" height="52" rx="4" class="accT s"/><text x="445" y="283" text-anchor="middle" dominant-baseline="middle" class="t-s b">カレンダー</text><text x="445" y="301" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">MCP サーバ（遠隔）</text><line x1="212" y1="290" x2="366" y2="290" class="s" marker-end="url(#a)"/><line x1="366" y1="298" x2="212" y2="298" class="sm" marker-end="url(#am)"/><text x="289" y="281" text-anchor="middle" dominant-baseline="middle" class="t-xs">HTTP</text><text x="289" y="124" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">JSON-RPC 2.0</text><rect x="568" y="128" width="132" height="44" rx="4" class="tint2 s"/><text x="634.0" y="150.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">手元のファイル</text><line x1="520" y1="150" x2="564" y2="150" class="sm" marker-end="url(#am)"/><rect x="568" y="198" width="132" height="44" rx="4" class="tint2 s"/><text x="634.0" y="220.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">Gmail API</text><line x1="520" y1="220" x2="564" y2="220" class="sm" marker-end="url(#am)"/><rect x="568" y="268" width="132" height="44" rx="4" class="tint2 s"/><text x="634.0" y="290.0" text-anchor="middle" dominant-baseline="middle" class="t-xs">Calendar API</text><line x1="520" y1="290" x2="564" y2="290" class="sm" marker-end="url(#am)"/><text x="634" y="334" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">サービスへは HTTPS ＋ OAuth 2.0</text><text x="360" y="384" text-anchor="middle" dominant-baseline="middle" class="t-xs b">サーバが差し出すもの：tools（道具）・resources（データ）・prompts（定型の指示）</text><text x="360" y="406" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">1つのクライアントが1つのサーバとつながる。道具を足すときはサーバを足すだけでよい</text></svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="420" class="bg"/><rect x="14" y="176" width="120" height="60" rx="4" class="tint s"/><text x="74.0" y="206.0" text-anchor="middle" dominant-baseline="middle" class="t-s b">クライアント</text><rect x="214" y="166" width="160" height="80" rx="4" class="accT s"/><text x="294" y="194" text-anchor="middle" dominant-baseline="middle" class="t-xs b">キャッシュ DNS サーバ</text><text x="294" y="214" text-anchor="middle" dominant-baseline="middle" class="t-xs">（フルリゾルバ）</text><line x1="134" y1="196" x2="210" y2="196" class="sa" marker-end="url(#aa)"/><line x1="210" y1="218" x2="134" y2="218" class="sa" marker-end="url(#aa)"/><text x="172" y="150" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">① www.kyushu-u.ac.jp は？</text><text x="172" y="266" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">⑤ 答え（IP アドレス）</text><rect x="500" y="40" width="200" height="48" rx="4" class="tint s"/><text x="600.0" y="64.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">ルート DNS</text><text x="600" y="106" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">② 「jp はあちらへ」</text><line x1="374" y1="190" x2="496" y2="58" class="sm" marker-end="url(#am)"/><line x1="496" y1="72" x2="374" y2="206" class="sm" marker-end="url(#am)"/><rect x="500" y="160" width="200" height="48" rx="4" class="tint s"/><text x="600.0" y="184.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">jp の DNS</text><text x="600" y="226" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">③ 「kyushu-u.ac.jp はあちらへ」</text><line x1="374" y1="190" x2="496" y2="178" class="sm" marker-end="url(#am)"/><line x1="496" y1="192" x2="374" y2="206" class="sm" marker-end="url(#am)"/><rect x="500" y="280" width="200" height="48" rx="4" class="tint s"/><text x="600.0" y="304.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">kyushu-u.ac.jp の DNS</text><text x="600" y="346" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">④ 「www の IP アドレスはこれ」</text><line x1="374" y1="190" x2="496" y2="298" class="sm" marker-end="url(#am)"/><line x1="496" y1="312" x2="374" y2="206" class="sm" marker-end="url(#am)"/><text x="294" y="288" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">TTL の間、答えを覚えておく</text><text x="360" y="384" text-anchor="middle" dominant-baseline="middle" class="t-s b">誰も全体を知らないが、階層をたどれば必ず答えに着く</text><text x="360" y="408" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">キャッシュがあるので、実際の問い合わせはほとんどが1〜2段で終わる</text></svg>

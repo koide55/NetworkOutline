@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" width="720" height="430" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="430" class="bg"/><rect x="25.0" y="20" width="170" height="36" rx="4" class="tint s"/><text x="110.0" y="38.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">利用者の端末</text><line x1="110" y1="56" x2="110" y2="340" class="sm dash"/><rect x="315.0" y="20" width="170" height="36" rx="4" class="tint s"/><text x="400.0" y="38.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">本物 example.com</text><line x1="400" y1="56" x2="400" y2="340" class="sm dash"/><rect x="535.0" y="20" width="170" height="36" rx="4" class="tint s"/><text x="620.0" y="38.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">偽サイト examp1e.com</text><line x1="620" y1="56" x2="620" y2="340" class="sm dash"/><text x="14" y="72" text-anchor="start" dominant-baseline="middle" class="t-xs b lbl">登録</text><line x1="114" y1="92" x2="396" y2="92" class="s" marker-end="url(#a)"/><text x="255.0" y="83" text-anchor="middle" dominant-baseline="middle" class="t-xs">公開鍵だけを登録する（秘密鍵は端末から出ない）</text><line x1="20" y1="112" x2="700" y2="112" class="sm dot"/><text x="14" y="130" text-anchor="start" dominant-baseline="middle" class="t-xs b lbl">認証</text><line x1="396" y1="152" x2="114" y2="152" class="s" marker-end="url(#a)"/><text x="255.0" y="143" text-anchor="middle" dominant-baseline="middle" class="t-xs">チャレンジ（毎回違う乱数）</text><rect x="30" y="166" width="160" height="44" rx="4" class="accT s"/><text x="110" y="181" text-anchor="middle" dominant-baseline="middle" class="t-xs">指紋・顔・PIN で解錠し</text><text x="110" y="196" text-anchor="middle" dominant-baseline="middle" class="t-xs">example.com 用の鍵で署名</text><line x1="114" y1="232" x2="396" y2="232" class="sa" marker-end="url(#aa)"/><text x="255.0" y="223" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">署名（宛先のドメイン名を含む）</text><text x="408" y="254" text-anchor="start" dominant-baseline="middle" class="t-xs b">登録済みの公開鍵で検証 → ログイン</text><line x1="20" y1="272" x2="700" y2="272" class="sm dot"/><text x="14" y="290" text-anchor="start" dominant-baseline="middle" class="t-xs b lbl">偽サイト</text><line x1="616" y1="312" x2="114" y2="312" class="s" marker-end="url(#a)"/><text x="480" y="303" text-anchor="middle" dominant-baseline="middle" class="t-xs">チャレンジ</text><text x="120" y="332" text-anchor="start" dominant-baseline="middle" class="t-xs acc b">examp1e.com 用の鍵はない → 署名しない</text><text x="360" y="384" text-anchor="middle" dominant-baseline="middle" class="t-s b">利用者が騙されても、端末が騙されない</text><text x="360" y="408" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">サーバには公開鍵しかないので、サーバから漏れても悪用できない</text></svg>

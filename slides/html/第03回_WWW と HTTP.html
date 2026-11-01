@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第3回 WWW と HTTP｜通信工学通論</title>
+<style>
+
+:root{
+  --ink:#16191D; --paper:#FFFFFF; --tint:#EEF1F5; --tint2:#DDE4EC;
+  --acc:#0B5CAD; --accT:#D9E6F4; --mut:#5F6672; --dim:#9AA3B0;
+  --lightInk:#E8EBEF; --accLight:#6AB0F3; --code:#F5F7FA; --ghost:#2E3A4A;
+  --ja:"Yu Gothic Medium", "Yu Gothic", YuGothic, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; --mono:"SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0d10;font-family:var(--ja);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* 1280x720 の板を作り、画面の大きさに合わせて拡大縮小する。
+   どの画面でも同じ見た目になる —— スライドである以上これが要る。 */
+#deck{position:absolute;inset:0}
+.slide{
+  position:absolute;top:50%;left:50%;
+  width:1280px;height:720px;
+  transform:translate(-50%,-50%) scale(var(--s,1));
+  transform-origin:center center;
+  overflow:hidden;display:none;
+}
+.slide.on{display:block}
+.slide.light{background:var(--paper);color:var(--ink)}
+.slide.dark{background:var(--ink);color:var(--paper)}
+
+/* --- 明色スライドの骨格 --- */
+.slide.light header{position:absolute;top:33px;left:60px;right:60px}
+.kicker{font-size:16px;font-weight:700;color:var(--acc);letter-spacing:.02em}
+.slide.light h2{font-size:40px;font-weight:700;line-height:1.25;margin-top:6px}
+/* 内容の塊ごと、見出しと下端のあいだで縦に中央へ寄せる。
+   pptx では noteY を1枚ずつ手で詰めて注記を内容の直下に置いていた。
+   CSS は高さを知っているので、その手当てが要らない。 */
+.slide.light .body{position:absolute;top:130px;left:72px;right:72px;bottom:56px;
+  display:flex;flex-direction:column;gap:14px;justify-content:center}
+.pageno{position:absolute;right:60px;bottom:22px;font-size:13px;color:var(--mut)}
+
+.lead{font-size:20px;line-height:1.55;color:var(--ink)}
+.sub{font-size:17px;line-height:1.6;color:var(--mut)}
+.sub.center,.caption{text-align:center}
+.caption{font-size:20px;line-height:1.5;color:var(--ink)}
+.note{font-size:17px;line-height:1.5;font-weight:700;color:var(--acc);margin-top:8px}
+
+/* --- 意匠：マス目 --- */
+.motif{position:absolute;left:58px;bottom:56px;display:flex;gap:4px}
+.motif i{width:28px;height:19px;border:1px solid rgba(106,176,243,.45);border-radius:2px}
+.motif i.on{background:var(--accLight);border-color:var(--accLight)}
+.slide.title .motif{bottom:128px}
+
+/* --- 表紙 --- */
+.title-wrap{position:absolute;left:86px;top:188px;right:86px}
+.course{font-size:23px;color:var(--dim);letter-spacing:.12em}
+.slide.title h1{font-weight:700;line-height:1.2;margin-top:24px;color:var(--paper)}
+.tq{font-size:24px;line-height:1.5;color:var(--accLight);margin-top:28px}
+.affil{position:absolute;left:86px;bottom:22px;font-size:16px;color:var(--dim)}
+
+/* --- 今回の問い --- */
+.q-wrap{position:absolute;left:86px;right:86px;top:144px}
+.q-label{font-size:19px;font-weight:700;color:var(--accLight)}
+.q-big{font-size:48px;font-weight:700;line-height:1.35;margin-top:22px;color:var(--paper)}
+.q-sub{font-size:27px;color:var(--lightInk);margin-top:22px}
+.q-foot{font-size:19px;color:var(--dim);margin-top:40px}
+
+/* --- 節の区切り --- */
+.sec-wrap{position:absolute;left:86px;right:86px;top:230px}
+.sec-n{font-size:75px;font-weight:700;color:var(--ghost);line-height:1}
+.sec-name{font-size:51px;font-weight:700;color:var(--paper);margin-top:10px;line-height:1.2}
+.sec-tag{font-size:23px;color:var(--dim);margin-top:18px}
+
+/* --- 到達目標 --- */
+.goals{list-style:none;display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.goals li{display:flex;align-items:center;gap:18px}
+.goals .num{flex:none;width:48px;height:48px;border-radius:50%;
+  background:var(--accT);border:1.5px solid var(--acc);color:var(--acc);
+  font-size:19px;font-weight:700;display:grid;place-items:center}
+.g-h{font-size:21px;font-weight:700;color:var(--ink)}
+.g-b{font-size:19px;color:var(--mut);margin-left:12px}
+
+/* --- カード --- */
+.cards{display:grid;grid-template-columns:repeat(var(--per),1fr);gap:16px;align-content:start}
+.card{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:16px 18px}
+.card.acc{background:var(--accT);border-color:var(--acc)}
+.card-h{font-size:19px;font-weight:700;color:var(--ink)}
+.card.acc .card-h{color:var(--acc)}
+.card-b{font-size:16px;line-height:1.55;color:var(--mut);margin-top:8px}
+
+/* --- 囲み --- */
+.callout{border-radius:8px;padding:14px 20px}
+.callout.dashed{border:1.5px dashed var(--acc);background:var(--paper)}
+.callout.solid{border:1.5px solid var(--acc);background:var(--accT);
+  font-size:20px;font-weight:700;color:var(--acc);line-height:1.45}
+.callout.big{font-size:23px}
+.co-h{font-size:20px;font-weight:700;color:var(--acc)}
+.co-b{font-size:16px;line-height:1.5;color:var(--mut);margin-top:6px}
+
+/* --- 箇条書き --- */
+.bullets{list-style:none;display:flex;flex-direction:column;gap:10px}
+.bullets li{position:relative;padding-left:22px;font-size:21px;line-height:1.5;color:var(--ink)}
+.bullets li::before{content:"";position:absolute;left:4px;top:.62em;
+  width:7px;height:7px;border-radius:50%;background:var(--acc)}
+.bullets li.lv1{font-size:18px;color:var(--mut);padding-left:44px}
+.bullets li.lv1::before{left:26px;width:5px;height:5px;background:var(--mut)}
+.bullets.tight li{font-size:18px;gap:6px}
+
+/* --- コード --- */
+.code{background:var(--code);border:1px solid var(--tint2);border-radius:6px;
+  padding:16px 20px;font-family:var(--mono);font-size:17px;line-height:1.7;
+  color:var(--ink);white-space:pre;overflow:hidden}
+.code.small{font-size:15.5px}
+.code-split{display:grid;grid-template-columns:1fr .92fr;gap:22px;align-items:start}
+.side-h{font-size:19px;font-weight:700;color:var(--ink)}
+.side-b{font-size:17px;line-height:1.6;color:var(--mut);margin-top:8px}
+
+/* --- 表 --- */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.tbl th,.tbl td{border:1px solid var(--tint2);padding:7px 11px;font-size:17px;
+  line-height:1.4;text-align:left;vertical-align:middle;word-break:break-word}
+.tbl th{background:var(--tint);font-weight:700}
+.tbl.mono{font-family:var(--mono);font-size:16px}
+.tbl.mono th{font-family:var(--ja)}
+.tbl.center th,.tbl.center td{text-align:center}
+
+/* --- 左右2段 --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.col{display:flex;flex-direction:column;gap:11px}
+.col-h{font-size:20px;font-weight:700;color:var(--ink)}
+.col-b{font-size:17px;line-height:1.65;color:var(--mut)}
+.col-n{font-size:17px;font-weight:700;color:var(--acc)}
+
+/* --- 主張と対応 --- */
+.map{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.map li{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:8px}
+.m-a{font-size:20px;color:var(--ink);text-align:right}
+.m-arrow{height:3px;background:var(--acc);position:relative;border-radius:2px}
+.m-arrow::after{content:"";position:absolute;right:-1px;top:-5px;
+  border:7px solid transparent;border-left-color:var(--acc);border-right:0}
+.m-b{font-size:21px;font-weight:700;color:var(--acc)}
+
+/* --- 手順 --- */
+.steps{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:10px;align-items:stretch}
+.step{background:var(--tint);border:1px solid var(--tint2);border-radius:8px;padding:12px 12px 14px}
+.step.first{background:var(--accT);border-color:var(--acc)}
+.st-n{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--acc)}
+.st-h{font-size:17px;font-weight:700;color:var(--ink);margin-top:6px;line-height:1.3}
+.st-b{font-size:15px;color:var(--mut);margin-top:6px;line-height:1.45}
+
+/* --- 図 --- */
+/* 図は枠いっぱいまで伸ばす。SVG なので拡大しても粗くならない。
+   pptx 版も箱に合わせて拡大していたので、そこは同じ振る舞いにしてある。 */
+.figwrap{flex:1;min-height:0;display:flex}
+.fig{width:100%;height:100%;object-fit:contain}
+.fig-missing{color:#b00;font-size:20px;text-align:center;padding:40px}
+
+/* --- 演習 --- */
+.ex{list-style:none;display:flex;flex-direction:column;gap:16px}
+.ex li{display:flex;gap:18px;align-items:flex-start}
+.ex-n{flex:none;width:74px;padding:5px 0;text-align:center;border-radius:7px;
+  background:var(--accT);border:1px solid var(--acc);color:var(--acc);
+  font-family:var(--mono);font-size:17px;font-weight:700}
+.ex-t{font-size:19px;line-height:1.55;color:var(--ink);padding-top:3px}
+
+/* --- まとめ --- */
+.sum-wrap{position:absolute;left:86px;right:86px;top:74px;bottom:74px;
+  display:flex;flex-direction:column}
+.sum-t{font-size:40px;font-weight:700;color:var(--paper)}
+.sum{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:26px}
+.sum li{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:baseline}
+.s-h{font-size:20px;font-weight:700;color:var(--accLight)}
+.s-b{font-size:18px;line-height:1.5;color:var(--lightInk)}
+.next{font-size:17px;color:var(--dim);margin-top:auto;line-height:1.5}
+.next b{color:var(--accLight)}
+
+/* --- 画面まわり --- */
+#hud{position:fixed;left:16px;bottom:12px;font-size:13px;color:#7c8694;
+  font-family:var(--mono);z-index:20;user-select:none}
+#help{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);
+  background:#fff;color:var(--ink);border-radius:12px;padding:26px 30px;z-index:30;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);font-size:15px;max-width:520px}
+#help h3{font-size:19px;margin-bottom:14px}
+#help table{border-collapse:collapse;width:100%}
+#help td{padding:5px 10px 5px 0;vertical-align:top}
+#help td:first-child{font-family:var(--mono);color:var(--acc);white-space:nowrap}
+#help p{margin-top:14px;color:var(--mut);font-size:13.5px;line-height:1.6}
+
+/* --- 一覧表示 --- */
+body.overview{overflow:auto}
+body.overview #deck{position:static;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;padding:22px}
+body.overview .slide{position:relative;top:auto;left:auto;display:block;
+  transform:scale(var(--os));transform-origin:top left;
+  width:1280px;height:720px;cursor:pointer;
+  outline:2px solid #2a3340;border-radius:2px}
+body.overview .slide.on{outline:3px solid var(--accLight)}
+body.overview .sl-wrap{overflow:hidden}
+
+/* --- 組版チェック：実際に溢れた箇所だけを赤で示す --- */
+body.check .slide.overflow{outline:4px solid #e0453a;outline-offset:-4px}
+body.check .slide.overflow::after{content:"組版あふれ";position:absolute;
+  right:0;top:0;background:#e0453a;color:#fff;font-size:13px;padding:3px 9px;
+  font-weight:700;z-index:9}
+
+/* --- 印刷：1枚1ページ。PDF にすれば配布できる --- */
+@page{size:1280px 720px;margin:0}
+@media print{
+  html,body{overflow:visible;background:#fff;height:auto}
+  #hud,#help{display:none!important}
+  #deck{position:static}
+  .slide{position:relative!important;display:block!important;top:auto;left:auto;
+    transform:none!important;page-break-after:always;break-after:page;
+    width:1280px;height:720px}
+  .slide:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="deck">
+<section class="slide dark title">
+      <div class="title-wrap">
+        <div class="course">通信工学通論</div>
+        <h1 style="font-size:51px">第3回　WWW と HTTP</h1>
+        <p class="tq">ブラウザがページを表示するまでに、何が起きているのか。</p>
+      </div>
+      <div class="affil">九州大学</div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide dark ">
+      <div class="q-wrap">
+        <div class="q-label">今回の問い</div>
+        <p class="q-big">ブラウザがページを表示するまでに、<br>何が起きているのか。</p>
+        <p class="q-sub">中身は、人が読める文字の「要求」と「応答」である。</p>
+        <p class="q-foot">この90分で、この問いに答えを出す。</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第3回</div>
+        <h2>到達目標</h2>
+      </header><div class="body"><ol class="goals">
+      <li><span class="num">1</span>
+        <span class="g-h">URL</span><span class="g-b">の各部分が何を表すかを説明できる</span></li>
+      <li><span class="num">2</span>
+        <span class="g-h">HTTP の要求と応答</span><span class="g-b">を、メソッド・ステータスコード・ヘッダの言葉で読める</span></li>
+      <li><span class="num">3</span>
+        <span class="g-h">ステートレス</span><span class="g-b">であることの利点と、その帰結を説明できる</span></li>
+      <li><span class="num">4</span>
+        <span class="g-h">HTTP/2・HTTP/3・HTTPS・CDN</span><span class="g-b">が何を改良したかを説明できる</span></li>
+      <li><span class="num">5</span>
+        <span class="g-h">curl と開発者ツール</span><span class="g-b">で、実際の通信を観察できる</span></li></ol></div>
+        <div class="pageno">3</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">3.1</div>
+        <h1 class="sec-name">WWW の仕組み</h1>
+        <p class="sec-tag">URL で指し、HTTP で取ってくる</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.1　WWW</div>
+        <h2>ページが表示されるまで</h2>
+      </header><div class="body">
+      <div class="steps" style="--n:5">
+      <div class="step first">
+        <div class="st-n">1</div>
+        <div class="st-h">URL を読む</div>
+        <div class="st-b">方式・ホスト名・パスに分ける</div>
+      </div>
+      <div class="step">
+        <div class="st-n">2</div>
+        <div class="st-h">名前を引く</div>
+        <div class="st-b">DNS でホスト名の IP アドレスを得る（第2回）</div>
+      </div>
+      <div class="step">
+        <div class="st-n">3</div>
+        <div class="st-h">つなぐ</div>
+        <div class="st-b">443 番につなぎ、TLS で相手を確かめる（第8回）</div>
+      </div>
+      <div class="step">
+        <div class="st-n">4</div>
+        <div class="st-h">要求する</div>
+        <div class="st-b">「GET /ja/」を送り、HTML を受け取る</div>
+      </div>
+      <div class="step">
+        <div class="st-n">5</div>
+        <div class="st-h">さらに取る</div>
+        <div class="st-b">画像・CSS・JavaScript を次々に要求して描く</div>
+      </div></div>
+      <p class="sub">1枚のページを表示するのに、数十〜数百回の要求が送られることも珍しくない。</p></div>
+        <div class="pageno">5</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.1　URL</div>
+        <h2>URL の各部分</h2>
+      </header><div class="body"><p class="lead">https://www.kyushu-u.ac.jp:443/ja/search?q=network#top</p>
+      <table class="tbl  "><colgroup><col style="width:18.64%"><col style="width:28.81%"><col style="width:52.54%"></colgroup><thead><tr><th>部分</th><th>例</th><th>意味</th></tr></thead><tbody><tr><td>スキーム</td><td>https</td><td>どの方式で取りに行くか（HTTP を TLS で守る）</td></tr><tr><td>ホスト</td><td>www.kyushu-u.ac.jp</td><td>DNS で引く名前（第2回）</td></tr><tr><td>ポート</td><td>:443</td><td>省略すると https は 443、http は 80</td></tr><tr><td>パス</td><td>/ja/search</td><td>サーバの中のどの資源か</td></tr><tr><td>クエリ</td><td>?q=network</td><td>追加の条件（検索語など）</td></tr><tr><td>フラグメント</td><td>#top</td><td>ページの中の位置。サーバには送られない</td></tr></tbody></table>
+      </div>
+        <div class="pageno">6</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.1　ブラウザ</div>
+        <h2>ブラウザの役割</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:2"><div class="card">
+      <div class="card-h">要求を組み立てる</div>
+      <div class="card-b">URL から HTTP の要求を作り、サーバに送る</div>
+    </div><div class="card">
+      <div class="card-h">HTML を描く</div>
+      <div class="card-b">受け取った HTML と CSS を解釈して画面にする</div>
+    </div><div class="card">
+      <div class="card-h">JavaScript を動かす</div>
+      <div class="card-b">ページの中のプログラムを実行し、さらに通信する（第4回）</div>
+    </div><div class="card">
+      <div class="card-h">覚えておく</div>
+      <div class="card-b">Cookie やキャッシュを保存し、次の要求に使う（第4回）</div>
+    </div></div>
+      <p class="note">ブラウザは HTTP のクライアントであり、同時にプログラムを動かす環境でもある。</p></div>
+        <div class="pageno">7</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">3.2</div>
+        <h1 class="sec-name">HTTP：要求と応答</h1>
+        <p class="sec-tag">人が読める文字のやりとり</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.2　HTTP</div>
+        <h2>要求と応答の形</h2>
+      </header><div class="body">
+      <div class="split"><div class="col"><div class="col-h">要求（ブラウザ → サーバ）</div><pre class="code small">GET /ja/ HTTP/1.1
+Host: www.kyushu-u.ac.jp
+User-Agent: Mozilla/5.0 ...
+Accept: text/html
+Accept-Language: ja
+</pre><p class="col-b">1行目：メソッド・パス・版。続いてヘッダ。空行の後に本文（GET では空）。</p></div><div class="col"><div class="col-h">応答（サーバ → ブラウザ）</div><pre class="code small">HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 31415
+Cache-Control: max-age=600
+
+&lt;!DOCTYPE html&gt; ...</pre><p class="col-b">1行目：版・ステータスコード・説明。続いてヘッダ。空行の後に本文（HTML）。</p></div></div>
+      <p class="note">SMTP（第2回）と同じく、空行でヘッダと本文を分け、3桁の数字で結果を返す。</p></div>
+        <div class="pageno">9</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.2　HTTP</div>
+        <h2>メソッド：何をしたいか</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:16.95%"><col style="width:42.37%"><col style="width:40.68%"></colgroup><thead><tr><th>メソッド</th><th>意味</th><th>例</th></tr></thead><tbody><tr><td>GET</td><td>取得する。副作用を持たせてはならない</td><td>ページを見る、画像を取る</td></tr><tr><td>POST</td><td>送る。サーバ側で何かが起きる</td><td>フォームの送信、LLM API への問い合わせ</td></tr><tr><td>PUT</td><td>置き換える</td><td>ファイルを丸ごと更新する</td></tr><tr><td>DELETE</td><td>削除する</td><td>投稿を消す</td></tr><tr><td>HEAD</td><td>ヘッダだけ取得する</td><td>更新されたかを確かめる</td></tr></tbody></table>
+      <p class="sub">GET に副作用を持たせると、検索エンジンのクローラがリンクをたどっただけでデータが消える、といった事故が起きる。</p></div>
+        <div class="pageno">10</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.2　HTTP</div>
+        <h2>ステータスコード：結果はどうだったか</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:13.56%"><col style="width:25.42%"><col style="width:61.02%"></colgroup><thead><tr><th>1桁目</th><th>意味</th><th>主な例</th></tr></thead><tbody><tr><td>2xx</td><td>成功</td><td>200 OK、201 Created</td></tr><tr><td>3xx</td><td>別の場所へ</td><td>301 Moved Permanently、304 Not Modified</td></tr><tr><td>4xx</td><td>クライアントの誤り</td><td>400 Bad Request、401 Unauthorized、403 Forbidden、404 Not Found、429 Too Many Requests</td></tr><tr><td>5xx</td><td>サーバの誤り</td><td>500 Internal Server Error、503 Service Unavailable</td></tr></tbody></table>
+      <div class="callout solid">1桁目を見れば、誰の側の問題かが分かる</div><p class="sub">429 は「呼びすぎ」。第6回の LLM API でも出てくる。</p></div>
+        <div class="pageno">11</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.2　HTTP</div>
+        <h2>よく使うヘッダ</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:32.20%"><col style="width:67.80%"></colgroup><thead><tr><th>ヘッダ</th><th>意味</th></tr></thead><tbody><tr><td>Host</td><td>どのサイト宛てか。1台のサーバで複数のサイトを動かせる</td></tr><tr><td>Content-Type</td><td>本文の形式（text/html、application/json、image/png など）</td></tr><tr><td>Accept / Accept-Language</td><td>欲しい形式や言語。サーバはこれを見て返すものを選ぶ</td></tr><tr><td>Cache-Control</td><td>キャッシュしてよいか、何秒まで使い回してよいか</td></tr><tr><td>Set-Cookie / Cookie</td><td>状態を持たせる（第4回）</td></tr><tr><td>Authorization</td><td>認証情報。API キーなどを送る（第4・6回）</td></tr></tbody></table>
+      </div>
+        <div class="pageno">12</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.2　キャッシュ</div>
+        <h2>キャッシュと条件付きの要求</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">Cache-Control</div>
+      <div class="card-b">「この応答は 600 秒使い回してよい」とサーバが伝える</div>
+    </div><div class="card">
+      <div class="card-h">条件付きの要求</div>
+      <div class="card-b">「手元の版から変わっていれば送って」と頼む（If-None-Match など）</div>
+    </div><div class="card">
+      <div class="card-h">304 Not Modified</div>
+      <div class="card-b">変わっていなければ、本文を送らずに済ませる</div>
+    </div></div>
+      <p class="note">DNS の TTL（第2回）と同じ考え方である。覚えておけば、何度も取りに行かなくて済む。</p></div>
+        <div class="pageno">13</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">3.3</div>
+        <h1 class="sec-name">HTTP の性質と進化</h1>
+        <p class="sec-tag">ステートレスだから、分散できる</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.3　性質</div>
+        <h2>HTTP はステートレスである</h2>
+      </header><div class="body">
+      <div class="callout solid big">サーバは、要求と要求の間のことを覚えていない</div>
+      <ul class="map">
+      <li><span class="m-a">1回ごとに完結する</span><span class="m-arrow"></span>
+        <span class="m-b">どのサーバが受けてもよい</span></li>
+      <li><span class="m-a">サーバを増やす</span><span class="m-arrow"></span>
+        <span class="m-b">負荷を分けられる</span></li>
+      <li><span class="m-a">でもログインは？</span><span class="m-arrow"></span>
+        <span class="m-b">Cookie で状態を持たせる（第4回）</span></li></ul>
+      <p class="sub">第6回では、LLM API も同じくステートレスであることを見る。</p></div>
+        <div class="pageno">15</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.3　進化</div>
+        <h2>HTTP の版ごとの改良</h2>
+      </header><div class="body">
+      <table class="tbl  "><colgroup><col style="width:16.95%"><col style="width:11.86%"><col style="width:71.19%"></colgroup><thead><tr><th>版</th><th>年</th><th>主な改良</th></tr></thead><tbody><tr><td>HTTP/1.1</td><td>1997</td><td>1本の接続を使い回す</td></tr><tr><td>HTTP/2</td><td>2015</td><td>1本の接続で複数の要求を同時に流す。ヘッダを圧縮する</td></tr><tr><td>HTTP/3</td><td>2022</td><td>QUIC という新しい土台の上で動く。接続が速く、回線が切り替わっても続く</td></tr></tbody></table>
+      <div class="callout solid">版が変わっても、メソッド・ステータスコード・ヘッダの意味は同じである</div><p class="sub">HTTP/2 以降は2進の形式で送るが、開発者ツールや curl では今日見た文字の形で表示される。<br>スマートフォンが Wi-Fi から携帯の回線に切り替わっても動画が止まりにくいのは、HTTP/3 の効果である。</p></div>
+        <div class="pageno">16</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.3　HTTPS</div>
+        <h2>HTTPS が当たり前になった</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">以前</div>
+      <div class="card-b">ログイン画面など一部だけが HTTPS。他は平文で、盗み見や書き換えができた</div>
+    </div><div class="card">
+      <div class="card-h">いま</div>
+      <div class="card-b">ほとんどの通信が HTTPS。ブラウザは HTTP のページを「保護されていない通信」と表示する</div>
+    </div><div class="card">
+      <div class="card-h">後押ししたもの</div>
+      <div class="card-b">証明書を無料で自動発行する Let's Encrypt（2015年〜）。ブラウザは HTTP/2・3 を HTTPS でしか使わない</div>
+    </div></div>
+      <p class="note">TLS が何を確かめているかは、第8回で扱う。</p></div>
+        <div class="pageno">17</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.3　CDN</div>
+        <h2>CDN：距離そのものを縮める</h2>
+      </header><div class="body"><p class="lead">東京と米国西海岸の往復には約 100 ミリ秒かかる。光の速さは変えられない。</p>
+      <div class="callout solid big">コンテンツの複製を世界各地に置き、近い場所から配る</div>
+      <ul class="map">
+      <li><span class="m-a">遅延</span><span class="m-arrow"></span>
+        <span class="m-b">近くから返す</span></li>
+      <li><span class="m-a">元のサーバの負荷</span><span class="m-arrow"></span>
+        <span class="m-b">肩代わりする</span></li>
+      <li><span class="m-a">突発的な負荷</span><span class="m-arrow"></span>
+        <span class="m-b">吸収する</span></li>
+      <li><span class="m-a">大量アクセスによる攻撃</span><span class="m-arrow"></span>
+        <span class="m-b">和らげる</span></li></ul>
+      <p class="sub">DNS が「近い CDN のサーバ」の IP アドレスを返すことで、利用者を振り分けている（第2回）。</p></div>
+        <div class="pageno">18</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">3.4</div>
+        <h1 class="sec-name">実習：HTTP を自分の目で見る</h1>
+        <p class="sec-tag">curl・開発者ツール・小さなサーバ</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.4　実習1</div>
+        <h2>実習1：curl で要求と応答を見る</h2>
+      </header><div class="body"><p class="lead">出力の例（一部。実際の値はサイトによって違う）</p><div class="code-split">
+          <pre class="code small">curl -v https://www.kyushu-u.ac.jp/ -o /dev/null
+
+&gt; GET / HTTP/2
+&gt; Host: www.kyushu-u.ac.jp
+&gt; User-Agent: curl/8.7.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/2 200
+&lt; content-type: text/html; charset=UTF-8
+&lt; cache-control: max-age=...</pre>
+          <div class="side"><div class="side-h">読み方</div>
+            <div class="side-b">&gt; で始まる行が送った要求、&lt; で始まる行が受け取った応答。<br><br>-I を付けるとヘッダだけを取る（HEAD）。<br><br>存在しないパスで 404 を、http:// で始めて 301 を見てみよう。</div></div>
+        </div><p class="sub">Windows では -o NUL とする。</p></div>
+        <div class="pageno">20</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.4　実習2</div>
+        <h2>実習2：開発者ツールで見る</h2>
+      </header><div class="body">
+      <div class="steps" style="--n:4">
+      <div class="step first">
+        <div class="st-n">1</div>
+        <div class="st-h">開く</div>
+        <div class="st-b">ブラウザで F12（Mac は ⌥⌘I）を押し、「ネットワーク」タブを選ぶ</div>
+      </div>
+      <div class="step">
+        <div class="st-n">2</div>
+        <div class="st-h">読み込む</div>
+        <div class="st-b">Moodle などのページを再読み込みする</div>
+      </div>
+      <div class="step">
+        <div class="st-n">3</div>
+        <div class="st-h">数える</div>
+        <div class="st-b">要求が何本あったか、合計で何 KB 受け取ったか</div>
+      </div>
+      <div class="step">
+        <div class="st-n">4</div>
+        <div class="st-h">1本を開く</div>
+        <div class="st-b">ヘッダ、ステータスコード、プロトコル（h2・h3）を確かめる</div>
+      </div></div>
+      <p class="sub">列の見出しを右クリックして「プロトコル」を表示すると、HTTP/2（h2）や HTTP/3（h3）が使われていることが分かる。<br>2回目の読み込みでは、キャッシュから取ったもの（304 や「キャッシュ」の表示）が増える。</p></div>
+        <div class="pageno">21</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.4　実習3</div>
+        <h2>実習3：小さな Web サーバを作る（bottle）</h2>
+      </header><div class="body"><div class="code-split">
+          <pre class="code small">from bottle import route, run, template
+
+@route('/hello/&lt;name&gt;')
+def hello(name):
+    return template('&lt;b&gt;Hello, {{name}}&lt;/b&gt;!',
+                    name=name)
+
+run(host='localhost', port=8080)</pre>
+          <div class="side"><div class="side-h">やること</div>
+            <div class="side-b">① pip install bottle の後、hello.py に保存して実行する。<br>② ブラウザで localhost:8080/hello/kyudai を開く。<br>③ curl -v localhost:8080/hello/kyudai で要求と応答を見る。<br>④ URL の一部が関数の引数になることを確かめる。</div></div>
+        </div><p class="sub">webapp-security-programming-handson の基本演習2をもとにしたもの。第4回ではこれを広げて Web API を作り、<br>第8回では同じ教材で脆弱性を観察する。</p></div>
+        <div class="pageno">22</div>
+      </section>
+<section class="slide dark ">
+      <div class="sec-wrap">
+        <div class="sec-n">3.5</div>
+        <h1 class="sec-name">AI も HTTP を話す</h1>
+        <p class="sec-tag">問い合わせるのも、ページを集めるのも HTTP</p>
+      </div><div class="motif"><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div></section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.5　AI</div>
+        <h2>LLM API への問い合わせも、ただの POST</h2>
+      </header><div class="body"><div class="code-split">
+          <pre class="code small">curl https://api.openai.com/v1/chat/completions \
+  -H &quot;Authorization: Bearer $OPENAI_API_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;model&quot;: &quot;&lt;モデル名&gt;&quot;,
+       &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;,
+                     &quot;content&quot;: &quot;こんにちは&quot;}]}'</pre>
+          <div class="side"><div class="side-h">今日学んだことだけで読める</div>
+            <div class="side-b">POST メソッドで、JSON の本文を送る。<br><br>Authorization ヘッダで API キーを渡す。<br><br>答えは 200 と JSON で返る。呼びすぎれば 429。<br><br>詳しくは第6回で扱う。</div></div>
+        </div></div>
+        <div class="pageno">24</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">3.5　AI</div>
+        <h2>AI のクローラと robots.txt</h2>
+      </header><div class="body">
+      <div class="cards" style="--per:3"><div class="card">
+      <div class="card-h">クローラ</div>
+      <div class="card-b">ページを自動で集めるプログラム。検索エンジンのほか、AI の学習データ集めにも使われている</div>
+    </div><div class="card">
+      <div class="card-h">robots.txt</div>
+      <div class="card-b">サイトの /robots.txt に「このクローラはここを見ないで」と書く約束。2022年に標準になった</div>
+    </div><div class="card">
+      <div class="card-h">あくまで約束</div>
+      <div class="card-b">守るかどうかはクローラ次第。技術的に止める仕組みではない</div>
+    </div></div>
+      <p class="note">例：「User-agent: GPTBot」「Disallow: /」と書くと、OpenAI のクローラにサイト全体を見ないよう求めることになる。</p></div>
+        <div class="pageno">25</div>
+      </section>
+<section class="slide light">
+        <header>
+        <div class="kicker">第3回</div>
+        <h2>演習</h2>
+      </header><div class="body"><ul class="ex">
+      <li><span class="ex-n">3-1</span><span class="ex-t">https://www.kyushu-u.ac.jp/ja/ を開いたときに起きることを、DNS・TLS・HTTP の順に説明せよ。</span></li>
+      <li><span class="ex-n">3-2</span><span class="ex-t">（手を動かす）curl -v で任意のサイトに要求を送り、ステータスコードと Content-Type を答えよ。存在しないパスではどうなるか。</span></li>
+      <li><span class="ex-n">3-3</span><span class="ex-t">HTTP がステートレスであることの利点を、サーバの台数の観点から説明せよ。</span></li>
+      <li><span class="ex-n">3-4</span><span class="ex-t">HTTP/2・HTTP/3 で変わったことと、変わっていないことをそれぞれ挙げよ。</span></li></ul></div>
+        <div class="pageno">26</div>
+      </section>
+<section class="slide dark ">
+      <div class="sum-wrap">
+        <h1 class="sum-t">まとめ</h1>
+        <ul class="sum">
+      <li><span class="s-h">WWW</span><span class="s-b">URL で資源を指し、HTTP で取ってくる。ページ1枚にも多くの要求が送られる</span></li>
+      <li><span class="s-h">HTTP</span><span class="s-b">要求はメソッド・パス・ヘッダ、応答はステータスコード・ヘッダ・本文</span></li>
+      <li><span class="s-h">ステートレス</span><span class="s-b">サーバは要求の間のことを覚えない。だから台数を増やして分散できる</span></li>
+      <li><span class="s-h">進化</span><span class="s-b">HTTP/2・3 で速くなり、HTTPS が当たり前になった。CDN が距離を縮める。意味は変わらない</span></li>
+      <li><span class="s-h">AI と HTTP</span><span class="s-b">LLM API も POST と JSON。クローラへのお願いは robots.txt に書く</span></li></ul>
+        <p class="next"><b>次回</b>　第4回　Web アプリケーションと Web API</p>
+      </div></section>
+</div>
+<div id="hud"><span id="cur">1</span> / <span id="total">27</span></div>
+<div id="help" hidden>
+  <h3>操作</h3>
+  <table>
+    <tr><td>→ ↓ Space PageDown</td><td>次へ</td></tr>
+    <tr><td>← ↑ PageUp</td><td>前へ</td></tr>
+    <tr><td>Home / End</td><td>最初 / 最後</td></tr>
+    <tr><td>数字 + Enter</td><td>その番号へ</td></tr>
+    <tr><td>O</td><td>一覧表示</td></tr>
+    <tr><td>F</td><td>全画面</td></tr>
+    <tr><td>C</td><td>組版チェック（溢れの検出）</td></tr>
+    <tr><td>P</td><td>印刷（PDF 保存）</td></tr>
+    <tr><td>?</td><td>この画面</td></tr>
+  </table>
+  <p>印刷は1枚1ページで出る。PDF にすれば pptx を配るのと同じことができる。</p>
+</div>
+<script>
+
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var cur=0, buf='';
+  var hud=document.getElementById('cur'), help=document.getElementById('help');
+
+  // 板を画面に合わせて拡大縮小する
+  function fit(){
+    var s=Math.min(innerWidth/1280, innerHeight/720);
+    document.documentElement.style.setProperty('--s', s);
+    var ow=(310)/1280;
+    slides.forEach(function(el){ el.style.setProperty('--os', ow); });
+    if(document.body.classList.contains('overview')) layoutOverview();
+  }
+  function layoutOverview(){
+    // 一覧では実寸の板を縮めて置くので、親に実際の見かけの大きさを持たせる
+    var cell=deck.clientWidth/Math.max(1,Math.floor(deck.clientWidth/330));
+    var s=(cell-8)/1280;
+    slides.forEach(function(el){
+      el.style.setProperty('--os', s);
+      el.style.marginBottom=(720*s-720)+'px';
+      el.style.marginRight=(1280*s-1280)+'px';
+    });
+  }
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(el,j){ el.classList.toggle('on', j===cur); });
+    hud.textContent=cur+1;
+    if(location.hash!=='#'+(cur+1)) history.replaceState(null,'','#'+(cur+1));
+  }
+  function overview(on){
+    document.body.classList.toggle('overview', on);
+    if(on){ slides.forEach(function(el){ el.classList.add('on'); }); layoutOverview();
+            slides[cur].scrollIntoView({block:'center'}); }
+    else { slides.forEach(function(el){ el.style.margin=''; }); fit(); show(cur); }
+  }
+
+  // 組版チェック。実際に描いた結果を測るので、見積もりではなく事実が分かる。
+  // pptx では PowerPoint に描かせるまで分からなかった部分である。
+  function check(){
+    var bad=[];
+    slides.forEach(function(el,i){
+      var was=el.classList.contains('on');
+      el.classList.add('on');
+      var over=false;
+      [].slice.call(el.querySelectorAll('*')).forEach(function(n){
+        var r=n.getBoundingClientRect(), e=el.getBoundingClientRect();
+        if(r.height&&(r.bottom>e.bottom+1||r.right>e.right+1)) over=true;
+      });
+      if(el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1) over=true;
+      el.classList.toggle('overflow', over);
+      if(over) bad.push(i+1);
+      if(!was) el.classList.remove('on');
+    });
+    document.body.classList.add('check');
+    slides[cur].classList.add('on');
+    console.log(bad.length? '組版あふれ: '+bad.length+'枚 → '+bad.join(', ') : '組版あふれなし');
+    return bad;
+  }
+
+  addEventListener('resize', fit);
+  addEventListener('hashchange', function(){
+    var n=parseInt(location.hash.slice(1),10); if(n) show(n-1);
+  });
+  addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k>='0'&&k<='9'){ buf+=k; return; }
+    if(k==='Enter'){ if(buf){ show(parseInt(buf,10)-1); buf=''; } return; }
+    buf='';
+    switch(k){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); show(cur+1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); show(cur-1); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length-1); break;
+      case 'o': case 'O': overview(!document.body.classList.contains('overview')); break;
+      case 'f': case 'F':
+        if(document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen(); break;
+      case 'c': case 'C':
+        if(document.body.classList.contains('check')){
+          document.body.classList.remove('check');
+          slides.forEach(function(el){ el.classList.remove('overflow'); });
+        } else check();
+        break;
+      case 'p': case 'P': print(); break;
+      case '?': help.hidden=!help.hidden; break;
+      case 'Escape': help.hidden=true; if(document.body.classList.contains('overview')) overview(false); break;
+    }
+  });
+  deck.addEventListener('click', function(e){
+    var el=e.target.closest('.slide'); if(!el) return;
+    if(document.body.classList.contains('overview')){
+      show(slides.indexOf(el)); overview(false);
+    } else show(cur+1);
+  });
+
+  fit();
+  var n=parseInt(location.hash.slice(1),10);
+  show(n? n-1 : 0);
+  window.__check=check;
+})();
+</script>
+</body>
+</html>

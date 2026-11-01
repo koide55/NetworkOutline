@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="720" height="380" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="380" class="bg"/><rect x="20" y="20" width="420" height="330" rx="8" class="bg s"/><text x="34" y="42" text-anchor="start" dominant-baseline="middle" class="t-s b">AI（人工知能）</text><text x="470" y="36" text-anchor="start" dominant-baseline="middle" class="t-s">知的な作業を計算機で行う技術の総称</text><text x="470" y="54" text-anchor="start" dominant-baseline="middle" class="t-xs lbl">例：囲碁AI、ルールで動く診断システム</text><line x1="138" y1="42" x2="462" y2="42" class="sm dot"/><rect x="42" y="76" width="376" height="264" rx="8" class="tint s"/><text x="56" y="98" text-anchor="start" dominant-baseline="middle" class="t-s b">機械学習</text><text x="470" y="92" text-anchor="start" dominant-baseline="middle" class="t-s">規則を人が書かず、データから作らせる</text><text x="470" y="110" text-anchor="start" dominant-baseline="middle" class="t-xs lbl">例：迷惑メールの判定</text><line x1="112" y1="98" x2="462" y2="98" class="sm dot"/><rect x="64" y="132" width="332" height="198" rx="8" class="bg s"/><text x="78" y="154" text-anchor="start" dominant-baseline="middle" class="t-s b">深層学習</text><text x="470" y="148" text-anchor="start" dominant-baseline="middle" class="t-s">多層のニューラルネットワークで学習する</text><text x="470" y="166" text-anchor="start" dominant-baseline="middle" class="t-xs lbl">例：画像認識、音声認識</text><line x1="134" y1="154" x2="462" y2="154" class="sm dot"/><rect x="86" y="188" width="288" height="132" rx="8" class="tint s"/><text x="100" y="210" text-anchor="start" dominant-baseline="middle" class="t-s b">生成AI</text><text x="470" y="204" text-anchor="start" dominant-baseline="middle" class="t-s">文章・画像・音声を新しく作り出す</text><text x="470" y="222" text-anchor="start" dominant-baseline="middle" class="t-xs lbl">例：画像生成、音声合成</text><line x1="156" y1="210" x2="462" y2="210" class="sm dot"/><rect x="108" y="244" width="244" height="66" rx="8" class="accT s"/><text x="122" y="266" text-anchor="start" dominant-baseline="middle" class="t-s b acc">LLM（大規模言語モデル）</text><text x="470" y="260" text-anchor="start" dominant-baseline="middle" class="t-s">大量のテキストで学習した言語モデル</text><text x="470" y="278" text-anchor="start" dominant-baseline="middle" class="t-xs lbl">例：ChatGPT、Claude、Gemini</text><line x1="286" y1="266" x2="462" y2="266" class="sm dot"/><text x="360" y="366" text-anchor="middle" dominant-baseline="middle" class="t-s b">ニュースで言う「AI」は、たいてい一番内側の LLM のことである</text></svg>

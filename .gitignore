@@ -1,0 +1,19 @@
+# --- 大容量の元ファイル（GitHub の 100MB 制限を超えるため追跡しない）---
+network2026.pptx
+
+# PowerPoint / macOS の作業ファイル
+~$*.pptx
+~$*.ppt
+.DS_Store
+._*
+
+# スライドの中間生成物（figs2png.sh・render.sh で作り直せる）
+slides/node_modules
+slides/png/
+slides/preview/
+slides/.render-*
+slides/.mdpreview-*
+.venv
+
+__pycache__/
+*.pyc

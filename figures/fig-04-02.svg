@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" width="720" height="430" role="img"><style>
+svg { font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+/* 線のクラスを先に置く。fill: none を持たせているのは、線だけの図形が
+   既定の黒で塗られないようにするため。ただしこれを塗りのクラスより
+   後に書くと、同じ詳細度なので後勝ちで cls='tint2 s' の塗りが消える。
+   実際そうなっており、全図で塗りが出ていなかった（2026-09-22 に修正）。 */
+.s    { stroke: #16191d; stroke-width: 1.6; fill: none; }
+.s2   { stroke: #16191d; stroke-width: 2.6; fill: none; }
+.sm   { stroke: #5f6672; stroke-width: 1.2; fill: none; }
+.sa   { stroke: #0b5cad; stroke-width: 2.2; fill: none; }
+.dash { stroke-dasharray: 5 4; }
+.dot  { stroke-dasharray: 1.5 3; }
+/* 塗りのクラス。線のクラスより後に置くことで cls='tint2 s' が塗られる */
+.bg   { fill: #ffffff; }
+.ink  { fill: #16191d; }
+.mut  { fill: #5f6672; }
+.tint { fill: #eef1f5; }
+.tint2{ fill: #dde4ec; }
+.acc  { fill: #0b5cad; }
+.accT { fill: #d9e6f4; }
+.none { fill: none; }
+text  { fill: #16191d; font-size: 14px; }
+.t-s  { font-size: 12px; }
+.t-xs { font-size: 10.5px; }
+.t-l  { font-size: 17px; }
+.t-xl { font-size: 21px; }
+.b    { font-weight: 700; }
+.i    { font-style: italic; }
+.m    { font-family: "SF Mono", Menlo, Consolas, monospace; }
+.lbl  { fill: #5f6672; }
+@media (prefers-color-scheme: dark) {
+  .bg   { fill: #14171b; }
+  .ink  { fill: #e8ebef; }
+  .mut  { fill: #9aa3b0; }
+  .tint { fill: #232830; }
+  .tint2{ fill: #2e343d; }
+  .acc  { fill: #6ab0f3; }
+  .accT { fill: #1e2c3c; }
+  .s, .s2 { stroke: #e8ebef; }
+  .sm   { stroke: #9aa3b0; }
+  .sa   { stroke: #6ab0f3; }
+  text  { fill: #e8ebef; }
+  .lbl  { fill: #9aa3b0; }
+}
+</style>
+<defs>
+ <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ink"/></marker>
+ <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="acc"/></marker>
+ <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+   orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mut"/></marker>
+ <marker id="o" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+   <circle cx="5" cy="5" r="3.5" class="bg s"/></marker>
+</defs>
+<rect width="720" height="430" class="bg"/><rect x="5" y="20" width="130" height="34" rx="4" class="tint s"/><text x="70.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">利用者</text><line x1="70" y1="54" x2="70" y2="360" class="sm dash"/><rect x="185" y="20" width="130" height="34" rx="4" class="tint s"/><text x="250.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">予定管理アプリ</text><line x1="250" y1="54" x2="250" y2="360" class="sm dash"/><rect x="385" y="20" width="130" height="34" rx="4" class="tint s"/><text x="450.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">認可サーバ</text><line x1="450" y1="54" x2="450" y2="360" class="sm dash"/><rect x="575" y="20" width="130" height="34" rx="4" class="tint s"/><text x="640.0" y="37.0" text-anchor="middle" dominant-baseline="middle" class="t-xs b">カレンダー API</text><line x1="640" y1="54" x2="640" y2="360" class="sm dash"/><line x1="246" y1="86" x2="74" y2="86" class="s" marker-end="url(#a)"/><text x="160.0" y="78" text-anchor="middle" dominant-baseline="middle" class="t-xs">① 認可サーバへ案内</text><line x1="74" y1="128" x2="446" y2="128" class="sa" marker-end="url(#aa)"/><text x="160" y="120" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">② ログインして許可</text><text x="160" y="142" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">「読み取りだけ」</text><line x1="446" y1="170" x2="254" y2="170" class="s" marker-end="url(#a)"/><text x="350" y="162" text-anchor="middle" dominant-baseline="middle" class="t-xs">③ 認可コード（利用者経由）</text><line x1="254" y1="212" x2="446" y2="212" class="s" marker-end="url(#a)"/><text x="350.0" y="204" text-anchor="middle" dominant-baseline="middle" class="t-xs">④ コードをトークンに交換</text><line x1="446" y1="248" x2="254" y2="248" class="s" marker-end="url(#a)"/><text x="350.0" y="240" text-anchor="middle" dominant-baseline="middle" class="t-xs">アクセストークン</text><line x1="254" y1="296" x2="636" y2="296" class="sa" marker-end="url(#aa)"/><text x="545" y="288" text-anchor="middle" dominant-baseline="middle" class="t-xs acc b">⑤ トークンを付けて呼ぶ</text><line x1="636" y1="334" x2="254" y2="334" class="s" marker-end="url(#a)"/><text x="545" y="326" text-anchor="middle" dominant-baseline="middle" class="t-xs">予定の一覧（JSON）</text><text x="360" y="392" text-anchor="middle" dominant-baseline="middle" class="t-s b">アプリは利用者のパスワードを一度も見ない。受け取るのは、絞られた権限のトークンだけ</text><text x="360" y="416" text-anchor="middle" dominant-baseline="middle" class="t-xs lbl">トークンには範囲と期限があり、利用者は後から取り消せる</text></svg>
